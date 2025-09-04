@@ -115,4 +115,12 @@ export class EvacuationService {
       }
     };
   }
+
+  clearEvacuationPlans() {
+    this.evacuationZones = [];
+    return {
+      message: 'All evacuation plans have been cleared and data has been reset',
+      success: true
+    };
+  }
 }

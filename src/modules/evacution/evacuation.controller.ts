@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { EvacuationPlanRequestDto, EvacuationPlanResponseDto, EvacuationStatusDto, EvacuationUpdateDto } from './evacuation-plan.dto';
 import { EvacuationService } from './evacuation.service';
 
@@ -24,5 +24,10 @@ export class EvacuationController {
       update.evacuatedCount,
       update.vehicleId
     );
+  }
+
+  @Delete('clear')
+  clearEvacuationPlans() {
+    return this.evacuationService.clearEvacuationPlans();
   }
 }
