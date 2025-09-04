@@ -2,6 +2,12 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
 import { mockEvacuatedZones } from '@modules/mocks/evacuation-zone';
+import { 
+  generateOptimalEvacuationPlan, 
+  EvacuationPlanOptions,
+  Vehicle as PlanningVehicle,
+  EvacuationZone as PlanningZone
+} from '../../utils/evacuation-planning.utils';
 
 export interface ProcessedEvacuationZone {
   id: string;
@@ -108,69 +114,101 @@ export class EvacuationService {
     return this.evacuationZones;
   }
 
-  generateEvacuationPlan(vehicles?: any[]) {
+  getAvailableVehicles() {
+    return this.vehicleService.getAllVehicles();
+  }
+
+  generateEvacuationPlan(vehicles?: any[], options?: Partial<EvacuationPlanOptions>) {
     // Use provided vehicles or get all available vehicles from service
     const availableVehicles = vehicles || this.vehicleService.getAllVehicles();
     
     if (availableVehicles.length === 0) {
       return {
-        plan: [],
+        assignments: [],
         summary: {
-          totalVehicles: 0,
+          totalVehiclesAssigned: 0,
           totalPeopleToEvacuate: 0,
-          highPriorityZones: this.evacuationZones.filter(z => this.getUrgencyCategory(z) === 'high').length
-        }
+          highPriorityZones: this.evacuationZones.filter(z => this.getUrgencyCategory(z) === 'high').length,
+          averageDistance: 0,
+          averageTravelTime: 0,
+          zonesFullyCovered: 0,
+          zonesPartiallyCovered: 0,
+          totalDistanceKm: 0
+        },
+        options: {
+          maxDistanceKm: options?.maxDistanceKm || 100,
+          allowMultiVehicle: options?.allowMultiVehicle !== false,
+          preferFewerTrips: options?.preferFewerTrips !== false,
+          speedFallbackKmh: options?.speedFallbackKmh || 40
+        },
+        // Legacy format for backward compatibility
+        plan: []
       };
     }
 
-    // Sort zones by urgency (high -> medium -> low)
-    const sortedZones = [...this.evacuationZones]
-      .filter(zone => this.getRemainingPeople(zone) > 0)
-      .sort((a, b) => {
-        const urgencyA = this.getUrgencyPriority(a);
-        const urgencyB = this.getUrgencyPriority(b);
-        return urgencyA - urgencyB;
-      });
-
-    // Sort vehicles by capacity (largest first)
-    const sortedVehicles = [...availableVehicles].sort((a, b) => b.capacity - a.capacity);
-
-    const plan: any[] = [];
-    let vehicleIndex = 0;
-
-    for (const zone of sortedZones) {
-      const remainingPeople = this.getRemainingPeople(zone);
-      let peopleToEvacuate = remainingPeople;
-
-      while (peopleToEvacuate > 0 && vehicleIndex < sortedVehicles.length) {
-        const vehicle = sortedVehicles[vehicleIndex];
-        const canEvacuate = Math.min(peopleToEvacuate, vehicle.capacity);
-
-        plan.push({
-          vehicleId: vehicle.id || vehicle.vehicleId,
-          assignedZone: this.getZoneLocation(zone),
-          priority: this.getUrgencyPriority(zone),
-          capacity: vehicle.capacity,
-          peopleToEvacuate: canEvacuate,
-          zoneDetails: {
-            zoneId: zone.zoneId || zone.id,
-            coordinates: zone.locationCoordinates,
-            urgencyLevel: zone.urgencyLevel
-          }
-        });
-
-        peopleToEvacuate -= canEvacuate;
-        vehicleIndex++;
-      }
-    }
-
-    const summary = {
-      totalVehicles: plan.length,
-      totalPeopleToEvacuate: plan.reduce((sum, p) => sum + p.peopleToEvacuate, 0),
-      highPriorityZones: sortedZones.filter(z => this.getUrgencyCategory(z) === 'high').length
+    // Set default options
+    const planOptions: EvacuationPlanOptions = {
+      maxDistanceKm: options?.maxDistanceKm || 100,
+      allowMultiVehicle: options?.allowMultiVehicle !== false,
+      preferFewerTrips: options?.preferFewerTrips !== false,
+      speedFallbackKmh: options?.speedFallbackKmh || 40
     };
 
-    return { plan, summary };
+    // Convert vehicles to planning format
+    const planningVehicles: PlanningVehicle[] = availableVehicles.map(vehicle => ({
+      id: vehicle.id || vehicle.vehicleId,
+      vehicleId: vehicle.vehicleId || vehicle.id,
+      capacity: vehicle.capacity,
+      type: vehicle.type,
+      locationCoordinates: vehicle.locationCoordinates || {
+        latitude: 0,
+        longitude: 0
+      },
+      speed: vehicle.speed,
+      location: vehicle.location
+    }));
+
+    // Convert zones to planning format
+    const planningZones: PlanningZone[] = this.evacuationZones.map(zone => ({
+      id: zone.id,
+      zoneId: zone.zoneId,
+      locationCoordinates: zone.locationCoordinates || {
+        latitude: 0,
+        longitude: 0
+      },
+      numberOfPeople: zone.numberOfPeople,
+      people: zone.people,
+      urgencyLevel: zone.urgencyLevel,
+      urgency: zone.urgency,
+      evacuated: zone.evacuated,
+      location: zone.location
+    }));
+
+    // Generate optimal evacuation plan
+    const result = generateOptimalEvacuationPlan(
+      planningVehicles,
+      planningZones,
+      planOptions
+    );
+
+    // Add legacy plan format for backward compatibility
+    const legacyPlan = result.assignments.map(assignment => ({
+      vehicleId: assignment.vehicleId,
+      assignedZone: assignment.assignedZone,
+      priority: assignment.priority,
+      capacity: assignment.vehicleCapacity,
+      peopleToEvacuate: assignment.peopleToEvacuate,
+      zoneDetails: {
+        zoneId: assignment.zoneId,
+        coordinates: assignment.zoneCoordinates,
+        urgencyLevel: assignment.urgencyLevel
+      }
+    }));
+
+    return {
+      ...result,
+      plan: legacyPlan // Legacy format
+    };
   }
 
   // Helper methods

@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { VehicleCreateDto } from './vehicle.dto';
+import { mockVehicles } from '@modules/mocks/vehicle';
 
 export interface ProcessedVehicle {
   id: string;
@@ -17,7 +18,7 @@ export interface ProcessedVehicle {
 
 @Injectable()
 export class VehicleService {
-  private vehicles: ProcessedVehicle[] = [];
+  private vehicles: ProcessedVehicle[] = [...mockVehicles];
 
   addVehicle(vehicleData: VehicleCreateDto) {
     // Validate input data
