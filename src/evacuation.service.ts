@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
+import { VehicleService } from './vehicle.service';
 
 @Injectable()
 export class EvacuationService {
   private evacuationZones: (EvacuationZoneDto & { evacuated: number; id: string })[] = [];
+
+  constructor(private readonly vehicleService: VehicleService) {}
 
   addEvacuationZone(zone: EvacuationZoneDto) {
     const newZone = {
@@ -19,7 +22,21 @@ export class EvacuationService {
     return this.evacuationZones;
   }
 
-  generateEvacuationPlan(vehicles: any[]) {
+  generateEvacuationPlan(vehicles?: any[]) {
+    // Use provided vehicles or get all available vehicles from service
+    const availableVehicles = vehicles || this.vehicleService.getAllVehicles();
+    
+    if (availableVehicles.length === 0) {
+      return {
+        plan: [],
+        summary: {
+          totalVehicles: 0,
+          totalPeopleToEvacuate: 0,
+          highPriorityZones: this.evacuationZones.filter(z => z.urgency.toLowerCase() === 'high').length
+        }
+      };
+    }
+
     // Sort zones by urgency (high -> medium -> low)
     const urgencyPriority: { [key: string]: number } = { 'high': 1, 'medium': 2, 'low': 3 };
     const sortedZones = [...this.evacuationZones]
@@ -31,7 +48,7 @@ export class EvacuationService {
       });
 
     // Sort vehicles by capacity (largest first)
-    const sortedVehicles = [...vehicles].sort((a, b) => b.capacity - a.capacity);
+    const sortedVehicles = [...availableVehicles].sort((a, b) => b.capacity - a.capacity);
 
     const plan: any[] = [];
     let vehicleIndex = 0;
