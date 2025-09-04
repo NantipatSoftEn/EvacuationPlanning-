@@ -3,98 +3,90 @@ import { ProcessedVehicle } from "@modules/vehicle/vehicle.service";
 export const mockVehicles: ProcessedVehicle[] = [
   {
     id: 'vehicle-001',
-    vehicleId: 'BUS-001',
-    capacity: 50,
+    vehicleId: 'V1',
+    capacity: 40,
     type: 'bus',
     locationCoordinates: {
-      latitude: 40.7580,
-      longitude: -73.9855
+      latitude: 13.7650,
+      longitude: 100.5381
     },
-    speed: 40,
-    location: 'Times Square Depot'
+    speed: 60
   },
   {
     id: 'vehicle-002',
-    vehicleId: 'AMB-001',
-    capacity: 4,
-    type: 'ambulance',
+    vehicleId: 'V2',
+    capacity: 20,
+    type: 'van',
     locationCoordinates: {
-      latitude: 40.7505,
-      longitude: -73.9934
+      latitude: 13.7320,
+      longitude: 100.5200
     },
-    speed: 60,
-    location: 'Manhattan General Hospital'
+    speed: 50
   },
   {
     id: 'vehicle-003',
-    vehicleId: 'TRUCK-001',
-    capacity: 20,
-    type: 'truck',
+    vehicleId: 'V3',
+    capacity: 30,
+    type: 'bus',
     locationCoordinates: {
-      latitude: 40.7282,
-      longitude: -74.0776
+      latitude: 13.7400,
+      longitude: 100.5300
     },
-    speed: 35,
-    location: 'West Side Highway Garage'
+    speed: 55
   },
   {
     id: 'vehicle-004',
-    vehicleId: 'VAN-001',
-    capacity: 12,
+    vehicleId: 'V4',
+    capacity: 15,
     type: 'van',
     locationCoordinates: {
-      latitude: 40.6782,
-      longitude: -73.9442
+      latitude: 13.7500,
+      longitude: 100.5400
     },
-    speed: 45,
-    location: 'Brooklyn Emergency Center'
+    speed: 45
   },
   {
     id: 'vehicle-005',
-    vehicleId: 'BUS-002',
-    capacity: 45,
-    type: 'bus',
+    vehicleId: 'V5',
+    capacity: 25,
+    type: 'boat',
     locationCoordinates: {
-      latitude: 40.7831,
-      longitude: -73.9712
+      latitude: 13.7600,
+      longitude: 100.5500
     },
-    speed: 40,
-    location: 'Central Park Transit Hub'
+    speed: 30
   },
   {
     id: 'vehicle-006',
-    vehicleId: 'CAR-001',
-    capacity: 5,
-    type: 'car',
+    vehicleId: 'V6',
+    capacity: 35,
+    type: 'bus',
     locationCoordinates: {
-      latitude: 40.7614,
-      longitude: -73.9776
+      latitude: 13.7450,
+      longitude: 100.5350
     },
-    speed: 50,
-    location: 'Midtown Police Precinct'
+    speed: 60
   },
   {
     id: 'vehicle-007',
-    vehicleId: 'TRUCK-002',
-    capacity: 25,
-    type: 'truck',
+    vehicleId: 'V7',
+    capacity: 18,
+    type: 'van',
     locationCoordinates: {
-      latitude: 40.6892,
-      longitude: -74.0445
+      latitude: 13.7550,
+      longitude: 100.5450
     },
-    speed: 35,
-    location: 'Brooklyn Heights Fire Station'
+    speed: 48
   },
   {
     id: 'vehicle-008',
-    vehicleId: 'AMB-002',
-    capacity: 6,
-    type: 'ambulance',
+    vehicleId: 'V8',
+    capacity: 20,
+    type: 'boat',
     locationCoordinates: {
-      latitude: 40.7489,
-      longitude: -73.9680
+      latitude: 13.7350,
+      longitude: 100.5250
     },
-    speed: 65,
-    location: 'East Side Medical Center'
+    speed: 35
   }
 ];
