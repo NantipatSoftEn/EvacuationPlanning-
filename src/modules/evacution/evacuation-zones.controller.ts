@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { EvacuationService } from './evacuation.service';
 
@@ -10,8 +10,18 @@ export class EvacuationZonesController {
   addEvacuationZone(@Body() zone: EvacuationZoneDto) {
     const result = this.evacuationService.addEvacuationZone(zone);
     return {
-      message: 'Evacuation zone added',
+      message: 'Evacuation zone added successfully',
       zone: result,
+    };
+  }
+
+  @Get()
+  getAllEvacuationZones() {
+    const zones = this.evacuationService.getEvacuationZones();
+    return {
+      message: 'Retrieved all evacuation zones',
+      zones,
+      count: zones.length
     };
   }
 }

@@ -15,6 +15,14 @@ export class EvacuationPlanResponseDto {
     priority: number;
     capacity: number;
     peopleToEvacuate: number;
+    zoneDetails?: {
+      zoneId: string;
+      coordinates?: {
+        latitude: number;
+        longitude: number;
+      };
+      urgencyLevel?: number;
+    };
   }[];
   summary: {
     totalVehicles: number;
@@ -26,10 +34,16 @@ export class EvacuationPlanResponseDto {
 export class EvacuationStatusDto {
   zones: {
     location: string;
+    zoneId?: string;
+    coordinates?: {
+      latitude: number;
+      longitude: number;
+    };
     totalPeople: number;
     evacuated: number;
     remaining: number;
-    urgency: string;
+    urgency?: string;
+    urgencyLevel?: number;
     status: string;
   }[];
 }
