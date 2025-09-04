@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
+import { mockEvacuatedZones } from '@modules/mocks/evacuation-zone';
 
 export interface ProcessedEvacuationZone {
   id: string;
@@ -20,7 +21,7 @@ export interface ProcessedEvacuationZone {
 
 @Injectable()
 export class EvacuationService {
-  private evacuationZones: ProcessedEvacuationZone[] = [];
+  private evacuationZones: ProcessedEvacuationZone[] = mockEvacuatedZones;
 
   constructor(private readonly vehicleService: VehicleService) {}
 
