@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { EvacuationPlanRequestDto, EvacuationPlanResponseDto, EvacuationStatusDto, EvacuationUpdateDto } from './evacuation-plan.dto';
 import { EvacuationService } from './evacuation.service';
-import { testDistanceCalculations } from '../../utils/distance-test.utils';
 
 @Controller('api/evacuations')
 export class EvacuationController {
@@ -74,8 +73,4 @@ export class EvacuationController {
     return this.evacuationService.clearEvacuationPlans();
   }
 
-  @Get('test/distance')
-  testDistanceCalculations() {
-    return testDistanceCalculations();
-  }
 }
