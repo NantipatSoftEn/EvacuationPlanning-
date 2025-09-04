@@ -20,6 +20,15 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "baseUrl": "./src",
+    "paths": {
+      "@core/*": ["core/*"],
+      "@common/*": ["common/*"],
+      "@integrations/*": ["integrations/*"],
+      "@modules/*": ["modules/*"],
+      "@commands/*": ["commands/*"],
+      "@events/*": ["events/*"]
+    }
   }
 }

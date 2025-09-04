@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
-import { VehicleService } from './vehicle.service';
+import { VehicleService } from '../vehicle/vehicle.service';
 
 @Injectable()
 export class EvacuationService {
