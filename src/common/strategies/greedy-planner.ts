@@ -138,30 +138,38 @@ export { generateGreedyPlan, chooseBestVehicleGreedy };
 
 const mockZone: ProcessedEvacuationZone[] = [
     {
-        id: 'zone-test-1',
+        id: 'z1',
         zoneId: 'Z1',
-        locationCoordinates: { latitude: 13.75, longitude: 100.5 },
-        numberOfPeople: 50,
+        locationCoordinates: { latitude: 13.9, longitude: 100.9 }, // Far
+        numberOfPeople: 40,
         urgencyLevel: 5,
+        evacuated: 0,
+    },
+     {
+        id: 'z2',
+        zoneId: 'Z2',
+        locationCoordinates: { latitude: 13.0, longitude: 100.9 }, // Far
+        numberOfPeople: 10,
+        urgencyLevel: 4,
         evacuated: 0,
     },
 ];
 
 const mockVehicles: ProcessedVehicle[] = [
     {
-        id: 'vehicle-1',
-        vehicleId: 'V1',
-        locationCoordinates: { latitude: 13.76, longitude: 100.51 }, // Very close
-        capacity: 30,
-        speed: 60,
+        id: 'v1',
+        vehicleId: 'v1',
+        locationCoordinates: { latitude: 13.8, longitude: 100.51 },
+        capacity: 10, 
+        speed: 100,
         type: 'bus',
     },
-    {
-        id: 'vehicle-2',
-        vehicleId: 'V2',
-        locationCoordinates: { latitude: 13.8, longitude: 100.6 }, // Further away
-        capacity: 50,
-        speed: 50,
+     {
+        id: 'v2',
+        vehicleId: 'v2',
+        locationCoordinates: { latitude: 13.76, longitude: 100.51 },
+        capacity: 40,
+        speed: 61,
         type: 'bus',
     },
 ];
