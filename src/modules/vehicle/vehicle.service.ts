@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { VehicleCreateDto } from './vehicle.dto';
-import { mockVehicles } from '@modules/mocks/vehicle';
+import { mockVehicles } from '@common/mocks/vehicle';
 
 export interface ProcessedVehicle {
   id: string;

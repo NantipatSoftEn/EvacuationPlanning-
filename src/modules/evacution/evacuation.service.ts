@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
-import { mockEvacuatedZones } from '@modules/mocks/evacuation-zone';
+import { mockEvacuatedZones } from '@common/mocks/evacuation-zone';
 import { 
   generateOptimalEvacuationPlan, 
   EvacuationPlanOptions,

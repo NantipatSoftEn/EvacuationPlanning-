@@ -1,44 +1,10 @@
+import { mockEvacuatedZones } from '@common/mocks/evacuation-zone';
+import { mockVehicles } from '@common/mocks/vehicle';
+import { EvacuationAssignment } from '@common/types/EvacuationAssignment';
+import { estimateTravelTime } from '@common/utils/estimate-travel-time';
+import { haversineDistance } from '@common/utils/haversine-distance';
 import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service';
 import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
-
-// ===== Interfaces =====
-
-interface EvacuationAssignment {
-  zoneId: string;
-  vehicleId: string;
-  etaMinutes: number;
-  evacuated: number;
-}
-
-// ===== Helper Functions =====
-
-// Haversine formula คำนวณระยะทางระหว่างสองจุด (กม.)
-function haversineDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-): number {
-    const R = 6371; // รัศมีโลก (km)
-    const toRad = (deg: number) => (deg * Math.PI) / 180;
-
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-
-    const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-}
-
-// เวลาที่ใช้ (ชั่วโมง → นาที)
-function estimateTravelTime(distanceKm: number, speedKmh: number): number {
-    if (speedKmh <= 0) return Infinity;
-    return (distanceKm / speedKmh) * 60;
-}
 
 // ===== Greedy Strategy =====
 
@@ -132,45 +98,7 @@ function generateGreedyPlan(
 }
 
 // ===== Export Functions =====
-export { generateGreedyPlan, chooseBestVehicleGreedy, haversineDistance, estimateTravelTime };
+export { generateGreedyPlan, chooseBestVehicleGreedy };
 
-// ===== Example Usage =====
-const exampleZones: ProcessedEvacuationZone[] = [
-    { 
-        id: 'zone-example-1', 
-        zoneId: 'Z1',
-        locationCoordinates: { latitude: 13.75, longitude: 100.5 },
-        numberOfPeople: 60, 
-        urgencyLevel: 5,
-        evacuated: 0
-    },
-    { 
-        id: 'zone-example-2', 
-        zoneId: 'Z2',
-        locationCoordinates: { latitude: 13.7, longitude: 100.55 },
-        numberOfPeople: 30, 
-        urgencyLevel: 3,
-        evacuated: 0
-    },
-];
 
-const exampleVehicles: ProcessedVehicle[] = [
-    { 
-        id: 'vehicle-example-1', 
-        vehicleId: 'V1',
-        locationCoordinates: { latitude: 13.8, longitude: 100.6 },
-        capacity: 40, 
-        speed: 60,
-        type: 'bus'
-    },
-    { 
-        id: 'vehicle-example-2', 
-        vehicleId: 'V2',
-        locationCoordinates: { latitude: 13.72, longitude: 100.58 },
-        capacity: 20, 
-        speed: 50,
-        type: 'van'
-    },
-];
-
-console.log('Example Greedy Plan:', generateGreedyPlan(exampleZones, exampleVehicles));
+console.log('Example Greedy Plan:', generateGreedyPlan(mockEvacuatedZones, mockVehicles));
