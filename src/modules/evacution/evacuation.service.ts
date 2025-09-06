@@ -27,6 +27,7 @@ export interface ProcessedEvacuationZone {
   people?: number;
   urgency?: string;
   evacuated: number;
+  lastVehicleUsed?: string;
 }
 
 @Injectable()
@@ -318,22 +319,15 @@ export class EvacuationService {
   }
 
   getEvacuationStatus() {
-    return {
-      zones: this.evacuationZones.map(zone => {
-        const totalPeople = zone.numberOfPeople || zone.people || 0;
-        return {
-          location: this.getZoneLocation(zone),
-          zoneId: zone.zoneId || zone.id,
-          coordinates: zone.locationCoordinates,
-          totalPeople,
-          evacuated: zone.evacuated,
-          remaining: totalPeople - zone.evacuated,
-          urgency: zone.urgency,
-          urgencyLevel: zone.urgencyLevel,
-          status: zone.evacuated >= totalPeople ? 'completed' : 'in-progress'
-        };
-      })
-    };
+    return this.evacuationZones.map(zone => {
+      const totalPeople = zone.numberOfPeople || zone.people || 0;
+      return {
+        zoneId: zone.zoneId || zone.id,
+        totalEvacuated: zone.evacuated,
+        remainingPeople: totalPeople - zone.evacuated,
+        ...(zone.lastVehicleUsed && { lastVehicleUsed: zone.lastVehicleUsed })
+      };
+    });
   }
 
   updateEvacuationStatus(zoneLocation: string, evacuatedCount: number, vehicleId: string) {
@@ -349,6 +343,7 @@ export class EvacuationService {
 
     const totalPeople = zone.numberOfPeople || zone.people || 0;
     zone.evacuated = Math.min(zone.evacuated + evacuatedCount, totalPeople);
+    zone.lastVehicleUsed = vehicleId; // Track the last vehicle used
     
     return {
       message: `Updated evacuation status for ${this.getZoneLocation(zone)}`,

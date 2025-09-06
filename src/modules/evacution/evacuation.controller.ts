@@ -32,17 +32,33 @@ export class EvacuationController {
   }
 
   @Get('status')
-  getEvacuationStatus(): EvacuationStatusDto {
+  getEvacuationStatus() {
     return this.evacuationService.getEvacuationStatus();
   }
 
   @Get('status/detailed')
   getDetailedEvacuationStatus() {
-    const status = this.evacuationService.getEvacuationStatus();
+    // Get the old detailed format
     const zones = this.evacuationService.getEvacuationZones();
+    const oldFormatStatus = {
+      zones: zones.map(zone => {
+        const totalPeople = zone.numberOfPeople || zone.people || 0;
+        return {
+          location: zone.location || `${zone.locationCoordinates?.latitude || 0},${zone.locationCoordinates?.longitude || 0}`,
+          zoneId: zone.zoneId || zone.id,
+          coordinates: zone.locationCoordinates,
+          totalPeople,
+          evacuated: zone.evacuated,
+          remaining: totalPeople - zone.evacuated,
+          urgency: zone.urgency,
+          urgencyLevel: zone.urgencyLevel,
+          status: zone.evacuated >= totalPeople ? 'completed' : 'in-progress'
+        };
+      })
+    };
     
     return {
-      ...status,
+      ...oldFormatStatus,
       totalZones: zones.length,
       zonesRequiringEvacuation: zones.filter(z => {
         const total = z.numberOfPeople || z.people || 0;

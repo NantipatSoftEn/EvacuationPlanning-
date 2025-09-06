@@ -97,20 +97,10 @@ export class EvacuationPlanResponseDto {
 }
 
 export class EvacuationStatusDto {
-  zones: {
-    location: string;
-    zoneId?: string;
-    coordinates?: {
-      latitude: number;
-      longitude: number;
-    };
-    totalPeople: number;
-    evacuated: number;
-    remaining: number;
-    urgency?: string;
-    urgencyLevel?: number;
-    status: string;
-  }[];
+  zoneId: string;
+  totalEvacuated: number;
+  remainingPeople: number;
+  lastVehicleUsed?: string;
 }
 
 export class EvacuationUpdateDto {
