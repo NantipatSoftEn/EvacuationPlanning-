@@ -7,8 +7,9 @@ export class EvacuationController {
   constructor(private readonly evacuationService: EvacuationService) {}
 
   @Post('plan')
-  generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto): EvacuationPlanResponseDto {
+  generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
     const options = {
+      strategy: request.strategy || 'greedy', // Default to greedy if not specified
       maxDistanceKm: request.maxDistanceKm || 100,
       allowMultiVehicle: request.allowMultiVehicle !== false,
       preferFewerTrips: request.preferFewerTrips !== false,
@@ -18,7 +19,16 @@ export class EvacuationController {
     // Get vehicles from the service (you might want to get them from database or other source)
     const vehicles = this.evacuationService.getAvailableVehicles();
     const result = this.evacuationService.generateEvacuationPlan(vehicles, options);
-    return result;
+    
+    // Transform to expected format: simple array with ZoneID, VehicleID, ETA, NumberOfPeople
+    const simplifiedPlan = result.assignments.map(assignment => ({
+      ZoneID: assignment.zoneId,
+      VehicleID: assignment.vehicleId,
+      ETA: assignment.travelTimeFormatted,
+      NumberOfPeople: assignment.peopleToEvacuate
+    }));
+    
+    return simplifiedPlan;
   }
 
   @Get('status')

@@ -2,12 +2,16 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
 import { mockEvacuatedZones } from '@common/mocks/evacuation-zone';
-import { 
-  generateOptimalEvacuationPlan, 
-  EvacuationPlanOptions,
-  Vehicle as PlanningVehicle,
-  EvacuationZone as PlanningZone
-} from '../../utils/evacuation-planning.utils';
+import { generateGreedyPlan } from '@common/strategies/greedy-planner';
+import { generateWeightedPlan } from '@common/strategies/weighted-planer';
+import { EvacuationAssignment } from '@common/types/EvacuationAssignment';
+
+export interface EvacuationPlanOptions {
+  maxDistanceKm: number;
+  allowMultiVehicle: boolean;
+  preferFewerTrips: boolean;
+  speedFallbackKmh: number;
+}
 
 export interface ProcessedEvacuationZone {
   id: string;
@@ -118,9 +122,11 @@ export class EvacuationService {
     return this.vehicleService.getAllVehicles();
   }
 
-  generateEvacuationPlan(vehicles?: any[], options?: Partial<EvacuationPlanOptions>) {
+  generateEvacuationPlan(vehicles?: any[], options?: Partial<EvacuationPlanOptions & { strategy?: 'greedy' | 'weighted' }>) {
     // Use provided vehicles or get all available vehicles from service
     const availableVehicles = vehicles || this.vehicleService.getAllVehicles();
+    
+    const strategy = options?.strategy || 'greedy'; // Default to greedy strategy
     
     if (availableVehicles.length === 0) {
       return {
@@ -136,6 +142,7 @@ export class EvacuationService {
           totalDistanceKm: 0
         },
         options: {
+          strategy,
           maxDistanceKm: options?.maxDistanceKm || 100,
           allowMultiVehicle: options?.allowMultiVehicle !== false,
           preferFewerTrips: options?.preferFewerTrips !== false,
@@ -146,72 +153,138 @@ export class EvacuationService {
       };
     }
 
-    // Set default options
-    const planOptions: EvacuationPlanOptions = {
-      maxDistanceKm: options?.maxDistanceKm || 100,
-      allowMultiVehicle: options?.allowMultiVehicle !== false,
-      preferFewerTrips: options?.preferFewerTrips !== false,
-      speedFallbackKmh: options?.speedFallbackKmh || 40
-    };
+    let assignments: EvacuationAssignment[] = [];
 
-    // Convert vehicles to planning format
-    const planningVehicles: PlanningVehicle[] = availableVehicles.map(vehicle => ({
-      id: vehicle.id || vehicle.vehicleId,
-      vehicleId: vehicle.vehicleId || vehicle.id,
-      capacity: vehicle.capacity,
-      type: vehicle.type,
-      locationCoordinates: vehicle.locationCoordinates || {
-        latitude: 0,
-        longitude: 0
-      },
-      speed: vehicle.speed,
-      location: vehicle.location
-    }));
+    // Use selected strategy
+    if (strategy === 'weighted') {
+      assignments = generateWeightedPlan(this.evacuationZones, availableVehicles);
+    } else {
+      assignments = generateGreedyPlan(this.evacuationZones, availableVehicles);
+    }
 
-    // Convert zones to planning format
-    const planningZones: PlanningZone[] = this.evacuationZones.map(zone => ({
-      id: zone.id,
-      zoneId: zone.zoneId,
-      locationCoordinates: zone.locationCoordinates || {
-        latitude: 0,
-        longitude: 0
-      },
-      numberOfPeople: zone.numberOfPeople,
-      people: zone.people,
-      urgencyLevel: zone.urgencyLevel,
-      urgency: zone.urgency,
-      evacuated: zone.evacuated,
-      location: zone.location
-    }));
-
-    // Generate optimal evacuation plan
-    const result = generateOptimalEvacuationPlan(
-      planningVehicles,
-      planningZones,
-      planOptions
-    );
-
-    // Add legacy plan format for backward compatibility
-    const legacyPlan = result.assignments.map(assignment => ({
-      vehicleId: assignment.vehicleId,
-      assignedZone: assignment.assignedZone,
-      priority: assignment.priority,
-      capacity: assignment.vehicleCapacity,
-      peopleToEvacuate: assignment.peopleToEvacuate,
-      zoneDetails: {
-        zoneId: assignment.zoneId,
-        coordinates: assignment.zoneCoordinates,
-        urgencyLevel: assignment.urgencyLevel
+    // Convert assignments to the expected format
+    const formattedAssignments = assignments.map(assignment => {
+      const zone = this.evacuationZones.find(z => (z.zoneId || z.id) === assignment.zoneId);
+      const vehicle = availableVehicles.find(v => (v.vehicleId || v.id) === assignment.vehicleId);
+      
+      if (!zone || !vehicle) {
+        return null;
       }
-    }));
+
+      const distanceKm = this.calculateDistance(zone, vehicle);
+      const travelTimeMinutes = assignment.etaMinutes;
+      
+      return {
+        vehicleId: assignment.vehicleId,
+        vehicleType: vehicle.type,
+        vehicleCapacity: vehicle.capacity,
+        assignedZone: zone.location || `Zone ${zone.zoneId || zone.id}`,
+        zoneId: zone.zoneId || zone.id,
+        zoneCoordinates: zone.locationCoordinates || { latitude: 0, longitude: 0 },
+        urgencyLevel: zone.urgencyLevel || 1,
+        urgencyCategory: this.getUrgencyCategory(zone),
+        priority: zone.urgencyLevel || 1,
+        peopleToEvacuate: assignment.evacuated,
+        distanceKm: distanceKm,
+        travelTimeHours: travelTimeMinutes / 60,
+        travelTimeMinutes: travelTimeMinutes,
+        travelTimeFormatted: this.formatTravelTime(travelTimeMinutes),
+        eta: this.calculateETA(travelTimeMinutes),
+        speedKmh: vehicle.speed || 50
+      };
+    }).filter(assignment => assignment !== null);
+
+    // Calculate summary statistics
+    const totalVehiclesAssigned = new Set(formattedAssignments.map(a => a.vehicleId)).size;
+    const totalPeopleToEvacuate = formattedAssignments.reduce((sum, a) => sum + a.peopleToEvacuate, 0);
+    const highPriorityZones = this.evacuationZones.filter(z => this.getUrgencyCategory(z) === 'high').length;
+    const totalDistanceKm = formattedAssignments.reduce((sum, a) => sum + a.distanceKm, 0);
+    const averageDistance = formattedAssignments.length > 0 ? totalDistanceKm / formattedAssignments.length : 0;
+    const averageTravelTime = formattedAssignments.length > 0 
+      ? formattedAssignments.reduce((sum, a) => sum + a.travelTimeMinutes, 0) / formattedAssignments.length 
+      : 0;
+
+    // Count zones coverage
+    const assignedZoneIds = new Set(formattedAssignments.map(a => a.zoneId));
+    const zonesFullyCovered = this.evacuationZones.filter(zone => {
+      if (!assignedZoneIds.has(zone.zoneId || zone.id)) return false;
+      const zoneAssignments = formattedAssignments.filter(a => a.zoneId === (zone.zoneId || zone.id));
+      const totalEvacuated = zoneAssignments.reduce((sum, a) => sum + a.peopleToEvacuate, 0);
+      const totalPeople = zone.numberOfPeople || zone.people || 0;
+      return totalEvacuated >= totalPeople;
+    }).length;
+
+    const zonesPartiallyCovered = assignedZoneIds.size - zonesFullyCovered;
 
     return {
-      ...result,
-      plan: legacyPlan // Legacy format
+      assignments: formattedAssignments,
+      summary: {
+        totalVehiclesAssigned,
+        totalPeopleToEvacuate,
+        highPriorityZones,
+        averageDistance: Math.round(averageDistance * 100) / 100,
+        averageTravelTime: Math.round(averageTravelTime * 100) / 100,
+        zonesFullyCovered,
+        zonesPartiallyCovered,
+        totalDistanceKm: Math.round(totalDistanceKm * 100) / 100
+      },
+      options: {
+        strategy,
+        maxDistanceKm: options?.maxDistanceKm || 100,
+        allowMultiVehicle: options?.allowMultiVehicle !== false,
+        preferFewerTrips: options?.preferFewerTrips !== false,
+        speedFallbackKmh: options?.speedFallbackKmh || 40
+      },
+      // Legacy format for backward compatibility
+      plan: formattedAssignments.map(assignment => ({
+        vehicleId: assignment.vehicleId,
+        assignedZone: assignment.assignedZone,
+        priority: assignment.priority,
+        capacity: assignment.vehicleCapacity,
+        peopleToEvacuate: assignment.peopleToEvacuate,
+        zoneDetails: {
+          zoneId: assignment.zoneId,
+          coordinates: assignment.zoneCoordinates,
+          urgencyLevel: assignment.urgencyLevel
+        }
+      }))
     };
   }
 
-  // Helper methods
+  // Helper methods  
+  private calculateDistance(zone: ProcessedEvacuationZone, vehicle: any): number {
+    if (!zone.locationCoordinates || !vehicle.locationCoordinates) {
+      return 0;
+    }
+    
+    const R = 6371; // Earth's radius in km
+    const lat1 = zone.locationCoordinates.latitude * Math.PI / 180;
+    const lat2 = vehicle.locationCoordinates.latitude * Math.PI / 180;
+    const deltaLat = (vehicle.locationCoordinates.latitude - zone.locationCoordinates.latitude) * Math.PI / 180;
+    const deltaLng = (vehicle.locationCoordinates.longitude - zone.locationCoordinates.longitude) * Math.PI / 180;
+
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  private formatTravelTime(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.floor(minutes % 60);
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  }
+
+  private calculateETA(minutes: number): string {
+    const now = new Date();
+    const eta = new Date(now.getTime() + minutes * 60 * 1000);
+    return eta.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
   private getRemainingPeople(zone: ProcessedEvacuationZone): number {
     return (zone.numberOfPeople || zone.people || 0) - zone.evacuated;
   }

@@ -1,4 +1,4 @@
-import { IsOptional, IsNumber, IsBoolean, Min } from 'class-validator';
+import { IsOptional, IsNumber, IsBoolean, IsString, IsIn, Min } from 'class-validator';
 
 export class VehicleDto {
   id?: string;
@@ -14,6 +14,11 @@ export class VehicleDto {
 }
 
 export class EvacuationPlanRequestDto {
+  @IsOptional()
+  @IsString()
+  @IsIn(['greedy', 'weighted'], { message: 'Strategy must be either "greedy" or "weighted"' })
+  strategy?: 'greedy' | 'weighted'; // เลือกกลยุทธ์การวางแผน
+
   @IsOptional()
   @IsNumber()
   @Min(1)
@@ -66,6 +71,7 @@ export class EvacuationPlanResponseDto {
     totalDistanceKm: number;
   };
   options: {
+    strategy: string;
     maxDistanceKm: number;
     allowMultiVehicle: boolean;
     preferFewerTrips: boolean;
