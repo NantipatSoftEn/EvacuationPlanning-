@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post } from '@nestjs/common';
 import { VehicleCreateDto } from './vehicle.dto';
 import { VehicleService } from './vehicle.service';
 
-@Controller('api/vehicles')
+@Controller('vehicles')
 export class VehicleController {
   constructor(private readonly vehicleService: VehicleService) {}
 
