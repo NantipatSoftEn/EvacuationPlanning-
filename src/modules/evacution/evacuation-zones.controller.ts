@@ -4,7 +4,7 @@ import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { EvacuationService } from './evacuation.service';
 
 @ApiTags('evacuation-zones')
-@Controller('api/evacuation-zones')
+@Controller('evacuation-zones')
 export class EvacuationZonesController {
   constructor(private readonly evacuationService: EvacuationService) {}
 
