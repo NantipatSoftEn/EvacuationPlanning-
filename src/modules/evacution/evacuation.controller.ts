@@ -103,10 +103,19 @@ export class EvacuationController {
   }
 
   @Delete('clear')
-  clearEvacuationPlans() {
+  async clearEvacuationPlans() {
     const result = this.evacuationService.clearEvacuationPlans();
+    
+    // Clear Redis cache as well
+    try {
+      await this.redisService.flush();
+    } catch (error) {
+      // Cache clear error doesn't affect the main operation
+      console.warn('Failed to clear Redis cache:', error.message);
+    }
+    
     return {
-      message: 'All evacuation plans cleared successfully',
+      message: 'All evacuation plans and cache cleared successfully',
       data: {
         cleared: true,
         timestamp: new Date().toISOString()
@@ -150,26 +159,4 @@ export class EvacuationController {
       };
     }
   }
-
-  @Delete('cache')
-  @UseGuards(RateLimitGuard)
-  @RateLimit(2, 300) // 2 requests per 5 minutes - cache clear is expensive
-  async clearCache() {
-    try {
-      await this.redisService.flush();
-      return {
-        message: 'Cache cleared successfully',
-        data: {
-          cleared: true,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      return {
-        message: 'Failed to clear cache',
-        error: error.message
-      };
-    }
-  }
-
 }
