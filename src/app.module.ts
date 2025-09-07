@@ -3,6 +3,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
+import { CacheModule } from '@common/cache/cache.module';
 import { EvacuationZonesController } from '@modules/evacution/evacuation-zones.controller';
 import { EvacuationController } from '@modules/evacution/evacuation.controller';
 import { EvacuationService } from '@modules/evacution/evacuation.service';
@@ -11,6 +12,7 @@ import { VehicleService } from '@modules/vehicle/vehicle.service';
 
 @Module({
   imports: [
+    CacheModule,
     ThrottlerModule.forRoot([{
       name: 'short',
       ttl: 1000, // 1 second

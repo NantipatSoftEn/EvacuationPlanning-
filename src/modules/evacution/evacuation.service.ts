@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
+import { RedisService } from '@common/cache/redis.service';
 import { mockEvacuatedZones } from '@common/mocks/evacuation-zone';
 import { generateGreedyPlan } from '@common/strategies/greedy-planner';
 import { generateWeightedPlan } from '@common/strategies/weighted-planer';
@@ -34,7 +35,10 @@ export interface ProcessedEvacuationZone {
 export class EvacuationService {
   private evacuationZones: ProcessedEvacuationZone[] = mockEvacuatedZones;
 
-  constructor(private readonly vehicleService: VehicleService) {}
+  constructor(
+    private readonly vehicleService: VehicleService,
+    private readonly redisService: RedisService
+  ) {}
 
   addEvacuationZone(zone: EvacuationZoneDto) {
     // Validate input data
@@ -143,11 +147,29 @@ export class EvacuationService {
     return this.vehicleService.getAllVehicles();
   }
 
-  generateEvacuationPlan(vehicles?: any[], options?: Partial<EvacuationPlanOptions & { strategy?: 'greedy' | 'weighted' }>) {
+  async generateEvacuationPlan(vehicles?: any[], options?: Partial<EvacuationPlanOptions & { strategy?: 'greedy' | 'weighted' }>) {
     // Use provided vehicles or get all available vehicles from service
     const availableVehicles = vehicles || this.vehicleService.getAllVehicles();
     
     const strategy = options?.strategy || 'greedy'; // Default to greedy strategy
+
+    // Check cache first
+    try {
+      const cachedPlan = await this.redisService.getCachedPlan(
+        this.evacuationZones, 
+        availableVehicles, 
+        { ...options, strategy }
+      );
+      if (cachedPlan) {
+        return {
+          ...cachedPlan.plan,
+          fromCache: true,
+          cachedAt: cachedPlan.cachedAt
+        };
+      }
+    } catch (error) {
+      console.warn('Redis cache error, proceeding without cache:', error.message);
+    }
     
     if (availableVehicles.length === 0) {
       return {
@@ -184,7 +206,7 @@ export class EvacuationService {
     }
 
     // Convert assignments to the expected format
-    const formattedAssignments = assignments.map(assignment => {
+    const formattedAssignments = await Promise.all(assignments.map(async assignment => {
       const zone = this.evacuationZones.find(z => (z.zoneId || z.id) === assignment.zoneId);
       const vehicle = availableVehicles.find(v => (v.vehicleId || v.id) === assignment.vehicleId);
       
@@ -192,7 +214,7 @@ export class EvacuationService {
         return null;
       }
 
-      const distanceKm = this.calculateDistance(zone, vehicle);
+      const distanceKm = await this.calculateDistance(zone, vehicle);
       const travelTimeMinutes = assignment.etaMinutes;
       
       return {
@@ -213,23 +235,25 @@ export class EvacuationService {
         eta: this.calculateETA(travelTimeMinutes),
         speedKmh: vehicle.speed || 50
       };
-    }).filter(assignment => assignment !== null);
+    }));
+
+    const validAssignments = formattedAssignments.filter(assignment => assignment !== null);
 
     // Calculate summary statistics
-    const totalVehiclesAssigned = new Set(formattedAssignments.map(a => a.vehicleId)).size;
-    const totalPeopleToEvacuate = formattedAssignments.reduce((sum, a) => sum + a.peopleToEvacuate, 0);
+    const totalVehiclesAssigned = new Set(validAssignments.map(a => a.vehicleId)).size;
+    const totalPeopleToEvacuate = validAssignments.reduce((sum, a) => sum + a.peopleToEvacuate, 0);
     const highPriorityZones = this.evacuationZones.filter(z => this.getUrgencyCategory(z) === 'high').length;
-    const totalDistanceKm = formattedAssignments.reduce((sum, a) => sum + a.distanceKm, 0);
-    const averageDistance = formattedAssignments.length > 0 ? totalDistanceKm / formattedAssignments.length : 0;
-    const averageTravelTime = formattedAssignments.length > 0 
-      ? formattedAssignments.reduce((sum, a) => sum + a.travelTimeMinutes, 0) / formattedAssignments.length 
+    const totalDistanceKm = validAssignments.reduce((sum, a) => sum + a.distanceKm, 0);
+    const averageDistance = validAssignments.length > 0 ? totalDistanceKm / validAssignments.length : 0;
+    const averageTravelTime = validAssignments.length > 0 
+      ? validAssignments.reduce((sum, a) => sum + a.travelTimeMinutes, 0) / validAssignments.length 
       : 0;
 
     // Count zones coverage
-    const assignedZoneIds = new Set(formattedAssignments.map(a => a.zoneId));
+    const assignedZoneIds = new Set(validAssignments.map(a => a.zoneId));
     const zonesFullyCovered = this.evacuationZones.filter(zone => {
       if (!assignedZoneIds.has(zone.zoneId || zone.id)) return false;
-      const zoneAssignments = formattedAssignments.filter(a => a.zoneId === (zone.zoneId || zone.id));
+      const zoneAssignments = validAssignments.filter(a => a.zoneId === (zone.zoneId || zone.id));
       const totalEvacuated = zoneAssignments.reduce((sum, a) => sum + a.peopleToEvacuate, 0);
       const totalPeople = zone.numberOfPeople || zone.people || 0;
       return totalEvacuated >= totalPeople;
@@ -237,8 +261,8 @@ export class EvacuationService {
 
     const zonesPartiallyCovered = assignedZoneIds.size - zonesFullyCovered;
 
-    return {
-      assignments: formattedAssignments,
+    const result = {
+      assignments: validAssignments,
       summary: {
         totalVehiclesAssigned,
         totalPeopleToEvacuate,
@@ -257,7 +281,7 @@ export class EvacuationService {
         speedFallbackKmh: options?.speedFallbackKmh || 40
       },
       // Legacy format for backward compatibility
-      plan: formattedAssignments.map(assignment => ({
+      plan: validAssignments.map(assignment => ({
         vehicleId: assignment.vehicleId,
         assignedZone: assignment.assignedZone,
         priority: assignment.priority,
@@ -270,12 +294,43 @@ export class EvacuationService {
         }
       }))
     };
+
+    // Cache the result
+    try {
+      await this.redisService.cachePlan(
+        this.evacuationZones, 
+        availableVehicles, 
+        { ...options, strategy }, 
+        result
+      );
+
+      // Track analytics
+      await this.redisService.incrementCounter(`stats:strategy_usage:${strategy}:${new Date().toISOString().split('T')[0]}`);
+      await this.redisService.incrementCounter(`stats:daily:${new Date().toISOString().split('T')[0]}:plan_generated`);
+    } catch (error) {
+      console.warn('Redis cache error:', error.message);
+    }
+
+    return result;
   }
 
   // Helper methods  
-  private calculateDistance(zone: ProcessedEvacuationZone, vehicle: any): number {
+  private async calculateDistance(zone: ProcessedEvacuationZone, vehicle: any): Promise<number> {
     if (!zone.locationCoordinates || !vehicle.locationCoordinates) {
       return 0;
+    }
+
+    // Try to get cached distance first
+    try {
+      const cached = await this.redisService.getCachedDistance(
+        zone.locationCoordinates,
+        vehicle.locationCoordinates
+      );
+      if (cached) {
+        return cached.distance;
+      }
+    } catch (error) {
+      // Continue with calculation if cache fails
     }
     
     const R = 6371; // Earth's radius in km
@@ -289,7 +344,22 @@ export class EvacuationService {
               Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c;
+    const distance = R * c;
+
+    // Cache the calculated distance and estimated travel time
+    try {
+      const travelTime = (distance / 40) * 60; // Assuming 40 km/h average speed
+      await this.redisService.cacheDistance(
+        zone.locationCoordinates,
+        vehicle.locationCoordinates,
+        distance,
+        travelTime
+      );
+    } catch (error) {
+      // Cache error doesn't affect the result
+    }
+
+    return distance;
   }
 
   private formatTravelTime(minutes: number): string {

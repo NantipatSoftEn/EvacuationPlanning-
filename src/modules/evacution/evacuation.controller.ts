@@ -1,13 +1,23 @@
-import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 import { EvacuationPlanRequestDto, EvacuationPlanResponseDto, EvacuationStatusDto, EvacuationUpdateDto } from './evacuation-plan.dto';
 import { EvacuationService } from './evacuation.service';
+import { RateLimit, RateLimitGuard } from '@common/cache/rate-limit.guard';
+import { CacheConfig, CacheInterceptor } from '@common/cache/cache.interceptor';
+import { RedisService } from '@common/cache/redis.service';
 
 @Controller('/evacuations')
 export class EvacuationController {
-  constructor(private readonly evacuationService: EvacuationService) {}
+  constructor(
+    private readonly evacuationService: EvacuationService,
+    private readonly redisService: RedisService
+  ) {}
 
   @Post('plan')
-  generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
+  @UseGuards(RateLimitGuard)
+  @RateLimit(5, 60) // 5 requests per minute
+  async generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
+    const startTime = Date.now();
+    
     const options = {
       strategy: request.strategy || 'greedy', // Default to greedy if not specified
       maxDistanceKm: request.maxDistanceKm || 100,
@@ -18,7 +28,15 @@ export class EvacuationController {
     
     // Get vehicles from the service (you might want to get them from database or other source)
     const vehicles = this.evacuationService.getAvailableVehicles();
-    const result = this.evacuationService.generateEvacuationPlan(vehicles, options);
+    const result = await this.evacuationService.generateEvacuationPlan(vehicles, options);
+    
+    // Track response time
+    const responseTime = Date.now() - startTime;
+    try {
+      await this.redisService.trackResponseTime('evacuation_plan', responseTime);
+    } catch (error) {
+      // Analytics error doesn't affect response
+    }
     
     // Transform to expected format: simple array with ZoneID, VehicleID, ETA, NumberOfPeople
     const simplifiedPlan = result.assignments.map(assignment => ({
@@ -34,7 +52,9 @@ export class EvacuationController {
         plan: simplifiedPlan,
         strategy: options.strategy,
         totalAssignments: simplifiedPlan.length,
-        planGeneratedAt: new Date().toISOString()
+        planGeneratedAt: new Date().toISOString(),
+        fromCache: result.fromCache || false,
+        responseTimeMs: responseTime
       }
     };
   }
@@ -71,6 +91,64 @@ export class EvacuationController {
         timestamp: new Date().toISOString()
       }
     };
+  }
+
+  @Get('stats')
+  @UseGuards(RateLimitGuard)
+  @RateLimit(20, 60) // 20 requests per minute for stats
+  async getStats() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const [dailyStats, strategyStats, cacheInfo] = await Promise.all([
+        this.redisService.getStats(`stats:daily:${today}:*`),
+        this.redisService.getStats('stats:strategy_usage:*'),
+        this.redisService.info()
+      ]);
+
+      return {
+        message: 'Statistics retrieved successfully',
+        data: {
+          today: dailyStats,
+          strategies: strategyStats,
+          cache: {
+            connected: true,
+            info: cacheInfo.split('\r\n').slice(0, 10) // First 10 lines of Redis info
+          }
+        }
+      };
+    } catch (error) {
+      return {
+        message: 'Failed to retrieve statistics',
+        error: error.message,
+        data: {
+          cache: {
+            connected: false
+          }
+        }
+      };
+    }
+  }
+
+  @Delete('cache')
+  @UseGuards(RateLimitGuard)
+  @RateLimit(2, 300) // 2 requests per 5 minutes - cache clear is expensive
+  async clearCache() {
+    try {
+      await this.redisService.flush();
+      return {
+        message: 'Cache cleared successfully',
+        data: {
+          cleared: true,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      return {
+        message: 'Failed to clear cache',
+        error: error.message
+      };
+    }
   }
 
 }
