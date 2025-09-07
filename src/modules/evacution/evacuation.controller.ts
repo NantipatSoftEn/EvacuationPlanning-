@@ -8,27 +8,8 @@ export class EvacuationController {
 
   @Post('plan')
   generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
-    const options = {
-      strategy: request.strategy || 'greedy', // Default to greedy if not specified
-      maxDistanceKm: request.maxDistanceKm || 100,
-      allowMultiVehicle: request.allowMultiVehicle !== false,
-      preferFewerTrips: request.preferFewerTrips !== false,
-      speedFallbackKmh: request.speedFallbackKmh || 40
-    };
-    
-    // Get vehicles from the service (you might want to get them from database or other source)
-    const vehicles = this.evacuationService.getAvailableVehicles();
-    const result = this.evacuationService.generateEvacuationPlan(vehicles, options);
-    
-    // Transform to expected format: simple array with ZoneID, VehicleID, ETA, NumberOfPeople
-    const simplifiedPlan = result.assignments.map(assignment => ({
-      ZoneID: assignment.zoneId,
-      VehicleID: assignment.vehicleId,
-      ETA: assignment.travelTimeFormatted,
-      NumberOfPeople: assignment.peopleToEvacuate
-    }));
-    
-    return simplifiedPlan;
+    console.log("reques",request);
+    return "SHIT"
   }
 
   @Get('status')
@@ -36,60 +17,11 @@ export class EvacuationController {
     return this.evacuationService.getEvacuationStatus();
   }
 
-  @Get('status/detailed')
-  getDetailedEvacuationStatus() {
-    // Get the old detailed format
-    const zones = this.evacuationService.getEvacuationZones();
-    const oldFormatStatus = {
-      zones: zones.map(zone => {
-        const totalPeople = zone.numberOfPeople || zone.people || 0;
-        return {
-          location: zone.location || `${zone.locationCoordinates?.latitude || 0},${zone.locationCoordinates?.longitude || 0}`,
-          zoneId: zone.zoneId || zone.id,
-          coordinates: zone.locationCoordinates,
-          totalPeople,
-          evacuated: zone.evacuated,
-          remaining: totalPeople - zone.evacuated,
-          urgency: zone.urgency,
-          urgencyLevel: zone.urgencyLevel,
-          status: zone.evacuated >= totalPeople ? 'completed' : 'in-progress'
-        };
-      })
-    };
-    
-    return {
-      ...oldFormatStatus,
-      totalZones: zones.length,
-      zonesRequiringEvacuation: zones.filter(z => {
-        const total = z.numberOfPeople || z.people || 0;
-        return total > z.evacuated;
-      }).length,
-      totalPeopleInAllZones: zones.reduce((sum, z) => sum + (z.numberOfPeople || z.people || 0), 0),
-      totalEvacuated: zones.reduce((sum, z) => sum + z.evacuated, 0),
-      evacuationProgress: {
-        completed: zones.filter(z => {
-          const total = z.numberOfPeople || z.people || 0;
-          return z.evacuated >= total && total > 0;
-        }).length,
-        inProgress: zones.filter(z => {
-          const total = z.numberOfPeople || z.people || 0;
-          return z.evacuated > 0 && z.evacuated < total;
-        }).length,
-        pending: zones.filter(z => z.evacuated === 0 && (z.numberOfPeople || z.people || 0) > 0).length
-      },
-      urgencyDistribution: {
-        high: zones.filter(z => (z.urgencyLevel || 0) >= 4 || (z.urgency === 'high')).length,
-        medium: zones.filter(z => (z.urgencyLevel || 0) === 3 || (z.urgency === 'medium')).length,
-        low: zones.filter(z => (z.urgencyLevel || 0) <= 2 || (z.urgency === 'low')).length
-      }
-    };
-  }
-
   @Put('update')
   updateEvacuationStatus(@Body() update: EvacuationUpdateDto) {
+    console.log("update",update);
     return this.evacuationService.updateEvacuationStatus(
       update.zoneLocation,
-      update.evacuatedCount,
       update.vehicleId
     );
   }

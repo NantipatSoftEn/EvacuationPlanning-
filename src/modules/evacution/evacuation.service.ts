@@ -330,7 +330,15 @@ export class EvacuationService {
     });
   }
 
-  updateEvacuationStatus(zoneLocation: string, evacuatedCount: number, vehicleId: string) {
+  updateEvacuationStatus(zoneLocation: string, vehicleId: string) {
+    // ดึงข้อมูลรถจาก vehicleService เพื่อใช้ capacity
+    const vehicle = this.vehicleService.getVehicleById(vehicleId);
+    if (!vehicle) {
+      throw new Error(`Vehicle ${vehicleId} not found`);
+    }
+
+    const evacuatedCount = vehicle.capacity; // ใช้ capacity ของรถ
+
     const zone = this.evacuationZones.find(z => 
       this.getZoneLocation(z) === zoneLocation || 
       z.zoneId === zoneLocation ||
@@ -346,7 +354,7 @@ export class EvacuationService {
     zone.lastVehicleUsed = vehicleId; // Track the last vehicle used
     
     return {
-      message: `Updated evacuation status for ${this.getZoneLocation(zone)}`,
+      message: `Updated evacuation status for ${this.getZoneLocation(zone)} using vehicle ${vehicleId} (capacity: ${evacuatedCount})`,
       zone: {
         location: this.getZoneLocation(zone),
         zoneId: zone.zoneId || zone.id,
@@ -354,7 +362,8 @@ export class EvacuationService {
         totalPeople,
         evacuated: zone.evacuated,
         remaining: totalPeople - zone.evacuated,
-        vehicleUsed: vehicleId
+        vehicleUsed: vehicleId,
+        vehicleCapacity: evacuatedCount
       }
     };
   }

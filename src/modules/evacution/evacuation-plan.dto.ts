@@ -104,7 +104,9 @@ export class EvacuationStatusDto {
 }
 
 export class EvacuationUpdateDto {
+  @IsString()
   zoneLocation: string;
-  evacuatedCount: number;
+  
+  @IsString()
   vehicleId: string;
 }
