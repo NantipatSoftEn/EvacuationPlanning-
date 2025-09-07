@@ -78,6 +78,26 @@ export class EvacuationService {
     return newZone;
   }
 
+  addEvacuationZones(zones: EvacuationZoneDto[]): ProcessedEvacuationZone[] {
+    const results: ProcessedEvacuationZone[] = [];
+    const errors: string[] = [];
+
+    zones.forEach((zone, index) => {
+      try {
+        const result = this.addEvacuationZone(zone);
+        results.push(result);
+      } catch (error) {
+        errors.push(`Zone ${index + 1}: ${error.message}`);
+      }
+    });
+
+    if (errors.length > 0) {
+      throw new BadRequestException(`Failed to add some zones: ${errors.join(', ')}`);
+    }
+
+    return results;
+  }
+
   private validateEvacuationZoneInput(zone: EvacuationZoneDto) {
     // Check if either new format or legacy format is provided
     const hasNewFormat = zone.locationCoordinates && zone.numberOfPeople !== undefined && zone.urgencyLevel !== undefined;

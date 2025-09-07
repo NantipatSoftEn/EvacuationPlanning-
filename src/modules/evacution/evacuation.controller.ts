@@ -28,26 +28,49 @@ export class EvacuationController {
       NumberOfPeople: assignment.peopleToEvacuate
     }));
     
-    return simplifiedPlan;
+    return {
+      message: `Evacuation plan generated successfully using ${options.strategy} strategy`,
+      data: {
+        plan: simplifiedPlan,
+        strategy: options.strategy,
+        totalAssignments: simplifiedPlan.length,
+        planGeneratedAt: new Date().toISOString()
+      }
+    };
   }
 
   @Get('status')
   getEvacuationStatus() {
-    return this.evacuationService.getEvacuationStatus();
+    const status = this.evacuationService.getEvacuationStatus();
+    return {
+      message: 'Retrieved evacuation status successfully',
+      data: status
+    };
   }
 
   @Put('update')
   updateEvacuationStatus(@Body() update: EvacuationUpdateDto) {
-    console.log("update",update);
-    return this.evacuationService.updateEvacuationStatus(
+    console.log("update", update);
+    const result = this.evacuationService.updateEvacuationStatus(
       update.zoneLocation,
       update.vehicleId
     );
+    return {
+      message: 'Evacuation status updated successfully',
+      data: result
+    };
   }
 
   @Delete('clear')
   clearEvacuationPlans() {
-    return this.evacuationService.clearEvacuationPlans();
+    const result = this.evacuationService.clearEvacuationPlans();
+    return {
+      message: 'All evacuation plans cleared successfully',
+      data: {
+        cleared: true,
+        timestamp: new Date().toISOString()
+      }
+    };
   }
 
 }

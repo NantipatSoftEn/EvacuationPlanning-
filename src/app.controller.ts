@@ -6,7 +6,21 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello() {
+    const hello = this.appService.getHello();
+    return {
+      message: 'Welcome to Evacuation Planning API',
+      data: {
+        greeting: hello,
+        version: '1.0.0',
+        endpoints: {
+          health: '/health',
+          docs: '/docs',
+          vehicles: '/api/api/vehicles',
+          evacuationZones: '/api/api/evacuation-zones',
+          evacuationPlan: '/api/api/evacuations/plan'
+        }
+      }
+    };
   }
 }

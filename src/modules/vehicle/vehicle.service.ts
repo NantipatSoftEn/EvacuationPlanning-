@@ -48,6 +48,26 @@ export class VehicleService {
     return newVehicle;
   }
 
+  addVehicles(vehiclesData: VehicleCreateDto[]): ProcessedVehicle[] {
+    const results: ProcessedVehicle[] = [];
+    const errors: string[] = [];
+
+    vehiclesData.forEach((vehicleData, index) => {
+      try {
+        const result = this.addVehicle(vehicleData);
+        results.push(result);
+      } catch (error) {
+        errors.push(`Vehicle ${index + 1}: ${error.message}`);
+      }
+    });
+
+    if (errors.length > 0) {
+      throw new BadRequestException(`Failed to add some vehicles: ${errors.join(', ')}`);
+    }
+
+    return results;
+  }
+
   private validateVehicleInput(vehicleData: VehicleCreateDto) {
     // Check if either new format or legacy format is provided
     const hasNewFormat = vehicleData.locationCoordinates && vehicleData.speed !== undefined;

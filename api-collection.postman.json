@@ -1,8 +1,9 @@
 {
   "info": {
     "name": "Evacuation Planning API",
-    "description": "Complete API collection for testing evacuation planning endpoints",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "Complete API collection for testing evacuation planning endpoints. Now supports bulk insert functionality and consistent response format {message: string, data: object}. You can add single items or arrays of items.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.1.0"
   },
   "variable": [
     {
@@ -25,10 +26,24 @@
       "response": []
     },
     {
+      "name": "API Documentation",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/docs",
+          "host": ["{{baseUrl}}"],
+          "path": ["docs"]
+        },
+        "description": "Access the Swagger API documentation"
+      },
+      "response": []
+    },
+    {
       "name": "Vehicles",
       "item": [
         {
-          "name": "Add Vehicle",
+          "name": "Add Single Vehicle",
           "request": {
             "method": "POST",
             "header": [
@@ -42,9 +57,31 @@
               "raw": "{\n  \"vehicleId\": \"V001\",\n  \"capacity\": 40,\n  \"type\": \"bus\",\n  \"locationCoordinates\": {\n    \"latitude\": 13.7563,\n    \"longitude\": 100.5018\n  },\n  \"speed\": 60\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles",
+              "raw": "{{baseUrl}}/api/api/vehicles",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "vehicles"]
+              "path": ["api", "api", "vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Multiple Vehicles (Bulk)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"vehicleId\": \"V002\",\n    \"capacity\": 30,\n    \"type\": \"van\",\n    \"locationCoordinates\": {\n      \"latitude\": 13.7460,\n      \"longitude\": 100.5340\n    },\n    \"speed\": 50\n  },\n  {\n    \"vehicleId\": \"V003\",\n    \"capacity\": 80,\n    \"type\": \"Large Bus\",\n    \"locationCoordinates\": {\n      \"latitude\": 13.7650,\n      \"longitude\": 100.5380\n    },\n    \"speed\": 45\n  },\n  {\n    \"vehicleId\": \"V004\",\n    \"capacity\": 20,\n    \"type\": \"Ambulance\",\n    \"locationCoordinates\": {\n      \"latitude\": 13.7280,\n      \"longitude\": 100.5240\n    },\n    \"speed\": 70\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "api", "vehicles"]
             }
           },
           "response": []
@@ -55,9 +92,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles",
+              "raw": "{{baseUrl}}/api/api/vehicles",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "vehicles"]
+              "path": ["api", "api", "vehicles"]
             }
           },
           "response": []
@@ -68,7 +105,7 @@
       "name": "Evacuation Zones",
       "item": [
         {
-          "name": "Add Evacuation Zone",
+          "name": "Add Single Evacuation Zone",
           "request": {
             "method": "POST",
             "header": [
@@ -82,9 +119,31 @@
               "raw": "{\n  \"zoneId\": \"Z001\",\n  \"locationCoordinates\": {\n    \"latitude\": 13.7500,\n    \"longitude\": 100.4900\n  },\n  \"numberOfPeople\": 150,\n  \"urgencyLevel\": 5\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/evacuation-zones",
+              "raw": "{{baseUrl}}/api/api/evacuation-zones",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuation-zones"]
+              "path": ["api", "api", "evacuation-zones"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Multiple Evacuation Zones (Bulk)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"zoneId\": \"Z002\",\n    \"locationCoordinates\": {\n      \"latitude\": 13.7460,\n      \"longitude\": 100.5340\n    },\n    \"numberOfPeople\": 200,\n    \"urgencyLevel\": 4\n  },\n  {\n    \"zoneId\": \"Z003\",\n    \"locationCoordinates\": {\n      \"latitude\": 13.7650,\n      \"longitude\": 100.5380\n    },\n    \"numberOfPeople\": 100,\n    \"urgencyLevel\": 2\n  },\n  {\n    \"zoneId\": \"Z004\",\n    \"locationCoordinates\": {\n      \"latitude\": 13.7280,\n      \"longitude\": 100.5240\n    },\n    \"numberOfPeople\": 300,\n    \"urgencyLevel\": 5\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/api/evacuation-zones",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "api", "evacuation-zones"]
             }
           },
           "response": []
@@ -95,9 +154,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/evacuation-zones",
+              "raw": "{{baseUrl}}/api/api/evacuation-zones",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuation-zones"]
+              "path": ["api", "api", "evacuation-zones"]
             }
           },
           "response": []
@@ -122,9 +181,9 @@
               "raw": "{\n  \"strategy\": \"greedy\",\n  \"maxDistanceKm\": 50,\n  \"allowMultiVehicle\": true,\n  \"preferFewerTrips\": true,\n  \"speedFallbackKmh\": 40\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/evacuations/plan",
+              "raw": "{{baseUrl}}/api/api/evacuations/plan",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuations", "plan"]
+              "path": ["api", "api", "evacuations", "plan"]
             }
           },
           "response": []
@@ -144,9 +203,9 @@
               "raw": "{\n  \"strategy\": \"weighted\",\n  \"maxDistanceKm\": 100,\n  \"allowMultiVehicle\": true,\n  \"preferFewerTrips\": false,\n  \"speedFallbackKmh\": 50\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/evacuations/plan",
+              "raw": "{{baseUrl}}/api/api/evacuations/plan",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuations", "plan"]
+              "path": ["api", "api", "evacuations", "plan"]
             }
           },
           "response": []
@@ -157,9 +216,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/evacuations/status",
+              "raw": "{{baseUrl}}/api/api/evacuations/status",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuations", "status"]
+              "path": ["api", "api", "evacuations", "status"]
             }
           },
           "response": []
@@ -179,9 +238,9 @@
               "raw": "{\n  \"zoneLocation\": \"Z001\",\n  \"vehicleId\": \"V001\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/evacuations/update",
+              "raw": "{{baseUrl}}/api/api/evacuations/update",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuations", "update"]
+              "path": ["api", "api", "evacuations", "update"]
             }
           },
           "response": []
@@ -192,9 +251,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/evacuations/clear",
+              "raw": "{{baseUrl}}/api/api/evacuations/clear",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "evacuations", "clear"]
+              "path": ["api", "api", "evacuations", "clear"]
             }
           },
           "response": []
