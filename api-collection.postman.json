@@ -1,0 +1,205 @@
+{
+  "info": {
+    "name": "Evacuation Planning API",
+    "description": "Complete API collection for testing evacuation planning endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Add Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"V001\",\n  \"capacity\": 40,\n  \"type\": \"bus\",\n  \"locationCoordinates\": {\n    \"latitude\": 13.7563,\n    \"longitude\": 100.5018\n  },\n  \"speed\": 60\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Evacuation Zones",
+      "item": [
+        {
+          "name": "Add Evacuation Zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zoneId\": \"Z001\",\n  \"locationCoordinates\": {\n    \"latitude\": 13.7500,\n    \"longitude\": 100.4900\n  },\n  \"numberOfPeople\": 150,\n  \"urgencyLevel\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuation-zones",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuation-zones"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Evacuation Zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuation-zones",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuation-zones"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Evacuation Planning",
+      "item": [
+        {
+          "name": "Generate Evacuation Plan - Greedy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"strategy\": \"greedy\",\n  \"maxDistanceKm\": 50,\n  \"allowMultiVehicle\": true,\n  \"preferFewerTrips\": true,\n  \"speedFallbackKmh\": 40\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuations/plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuations", "plan"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Evacuation Plan - Weighted",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"strategy\": \"weighted\",\n  \"maxDistanceKm\": 100,\n  \"allowMultiVehicle\": true,\n  \"preferFewerTrips\": false,\n  \"speedFallbackKmh\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuations/plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuations", "plan"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Evacuation Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuations/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuations", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Evacuation Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zoneLocation\": \"Z001\",\n  \"vehicleId\": \"V001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuations/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuations", "update"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Evacuation Plans",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/evacuations/clear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "evacuations", "clear"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
