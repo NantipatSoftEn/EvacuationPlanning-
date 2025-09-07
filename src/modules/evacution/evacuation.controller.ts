@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, UseGuards, UseInterceptors, NotFoundException, BadRequestException } from '@nestjs/common';
 import { EvacuationPlanRequestDto, EvacuationPlanResponseDto, EvacuationStatusDto, EvacuationUpdateDto } from './evacuation-plan.dto';
 import { EvacuationService } from './evacuation.service';
 import { RateLimit, RateLimitGuard } from '@common/cache/rate-limit.guard';
@@ -68,17 +68,38 @@ export class EvacuationController {
     };
   }
 
-  @Put('update')
+    @Put('update')
   updateEvacuationStatus(@Body() update: EvacuationUpdateDto) {
     console.log("update", update);
-    const result = this.evacuationService.updateEvacuationStatus(
-      update.zoneLocation,
-      update.vehicleId
-    );
-    return {
-      message: 'Evacuation status updated successfully',
-      data: result
-    };
+    
+    // Validate that either id or zoneLocation is provided
+    const idOrLocation = update.id || update.zoneLocation;
+    if (!idOrLocation) {
+      throw new BadRequestException({
+        message: 'Either id or zoneLocation must be provided',
+        statusCode: 400
+      });
+    }
+    
+    try {
+      const result = this.evacuationService.updateEvacuationStatus(
+        idOrLocation,
+        update.vehicleId
+      );
+      return {
+        message: 'Evacuation status updated successfully',
+        data: result
+      };
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        throw new NotFoundException({
+          message: 'Zone not found',
+          error: error.message,
+          statusCode: 404
+        });
+      }
+      throw error;
+    }
   }
 
   @Delete('clear')

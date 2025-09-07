@@ -104,8 +104,13 @@ export class EvacuationStatusDto {
 }
 
 export class EvacuationUpdateDto {
+  @IsOptional()
   @IsString()
-  zoneLocation: string;
+  id?: string; // Zone ID for direct lookup
+  
+  @IsOptional()
+  @IsString()
+  zoneLocation?: string; // Legacy field, optional for backward compatibility
   
   @IsString()
   vehicleId: string;

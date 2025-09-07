@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
 import { RedisService } from '@common/cache/redis.service';
@@ -420,23 +420,24 @@ export class EvacuationService {
     });
   }
 
-  updateEvacuationStatus(zoneLocation: string, vehicleId: string) {
+  updateEvacuationStatus(idOrLocation: string, vehicleId: string) {
     // ดึงข้อมูลรถจาก vehicleService เพื่อใช้ capacity
     const vehicle = this.vehicleService.getVehicleById(vehicleId);
     if (!vehicle) {
-      throw new Error(`Vehicle ${vehicleId} not found`);
+      throw new NotFoundException(`Vehicle ${vehicleId} not found`);
     }
 
     const evacuatedCount = vehicle.capacity; // ใช้ capacity ของรถ
 
+    // ค้นหาโซนโดยใช้ ID หรือ location
     const zone = this.evacuationZones.find(z => 
-      this.getZoneLocation(z) === zoneLocation || 
-      z.zoneId === zoneLocation ||
-      z.id === zoneLocation
+      z.id === idOrLocation ||
+      z.zoneId === idOrLocation ||
+      this.getZoneLocation(z) === idOrLocation
     );
     
     if (!zone) {
-      throw new Error(`Zone ${zoneLocation} not found`);
+      throw new NotFoundException(`Zone with ID or location '${idOrLocation}' not found`);
     }
 
     const totalPeople = zone.numberOfPeople || zone.people || 0;
@@ -446,6 +447,7 @@ export class EvacuationService {
     return {
       message: `Updated evacuation status for ${this.getZoneLocation(zone)} using vehicle ${vehicleId} (capacity: ${evacuatedCount})`,
       zone: {
+        id: zone.id,
         location: this.getZoneLocation(zone),
         zoneId: zone.zoneId || zone.id,
         coordinates: zone.locationCoordinates,
