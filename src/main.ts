@@ -5,8 +5,14 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { CustomLogger } from './common/logger/custom-logger.service';
 import helmet from 'helmet';
 import compression from 'compression';
+import * as dotenv from 'dotenv';
+import { join } from 'path';
 
 declare const module: any;
+
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+dotenv.config({ path: join(process.cwd(), envFile) });
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {

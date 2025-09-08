@@ -8,11 +8,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
 
   constructor() {
-    this.client = createClient({
-      url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
+    const redisConfig: any = {
+      url: process.env.REDIS_TLS === 'true' 
+        ? `rediss://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6380'}`
+        : `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
       password: process.env.REDIS_PASSWORD,
       database: parseInt(process.env.REDIS_DB || '0'),
-    });
+    };
+
+    // Add TLS configuration for Azure Redis Cache
+    if (process.env.REDIS_TLS === 'true') {
+      redisConfig.socket = {
+        tls: true,
+        rejectUnauthorized: false,
+      };
+    }
+
+    this.client = createClient(redisConfig);
 
     this.client.on('error', (err) => {
       this.logger.error('Redis Client Error', err);
