@@ -8,20 +8,48 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
 
   constructor() {
-    const redisConfig: any = {
-      url: process.env.REDIS_TLS === 'true' 
-        ? `rediss://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6380'}`
-        : `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
-      password: process.env.REDIS_PASSWORD,
-      database: parseInt(process.env.REDIS_DB || '0'),
-    };
+    let redisConfig: any;
 
-    // Add TLS configuration for Azure Redis Cache
-    if (process.env.REDIS_TLS === 'true') {
-      redisConfig.socket = {
-        tls: true,
-        rejectUnauthorized: false,
+    // For Azure Redis Cache with authentication
+    if (process.env.REDIS_PASSWORD && process.env.REDIS_TLS === 'true') {
+      redisConfig = {
+        url: `rediss://default:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+        database: parseInt(process.env.REDIS_DB || '0'),
+        socket: {
+          tls: true,
+          rejectUnauthorized: false,
+        },
       };
+      console.log('Using Azure Redis Cache configuration', redisConfig);
+    } else {
+      // Build Redis URL based on whether we have authentication
+      const host = process.env.REDIS_HOST || 'localhost';
+      const port = process.env.REDIS_PORT || '6379';
+      const tls = process.env.REDIS_TLS === 'true';
+      const protocol = tls ? 'rediss' : 'redis';
+      
+      if (process.env.REDIS_PASSWORD) {
+        // With authentication
+        const username = process.env.REDIS_USERNAME || 'default';
+        redisConfig = {
+          url: `${protocol}://${username}:${process.env.REDIS_PASSWORD}@${host}:${port}`,
+          database: parseInt(process.env.REDIS_DB || '0'),
+        };
+      } else {
+        // Without authentication - for local Redis
+        redisConfig = {
+          url: `${protocol}://${host}:${port}`,
+          database: parseInt(process.env.REDIS_DB || '0'),
+        };
+      }
+
+      // Add TLS configuration if needed
+      if (tls) {
+        redisConfig.socket = {
+          tls: true,
+          rejectUnauthorized: false,
+        };
+      }
     }
 
     this.client = createClient(redisConfig);
