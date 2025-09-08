@@ -7,57 +7,32 @@ services:
       dockerfile: Dockerfile
     container_name: evacuation-api
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env.production
     environment:
-      - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - NODE_ENV=${NODE_ENV:-production}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=0
-      - REDIS_TTL=300
-    depends_on:
-      redis:
-        condition: service_healthy
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_TTL=${REDIS_TTL:-300}
+      - REDIS_TLS=${REDIS_TLS:-true}
+      - JWT_SECRET=${JWT_SECRET}
+      - API_KEY=${API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FILE_PATH=${LOG_FILE_PATH}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - CORS_CREDENTIALS=${CORS_CREDENTIALS:-true}
+      - HEALTH_CHECK_ENDPOINT=${HEALTH_CHECK_ENDPOINT}
+      - METRICS_ENDPOINT=${METRICS_ENDPOINT}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT}
     networks:
       - evacuation_network
     restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: evacuation-redis-prod
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-      - ./redis-prod.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf
-    restart: unless-stopped
-    environment:
-      - REDIS_REPLICATION_MODE=master
-    networks:
-      - evacuation_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  redis-sentinel:
-    image: redis:7-alpine
-    container_name: redis-sentinel
-    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
-    volumes:
-      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
-    depends_on:
-      - redis
-    networks:
-      - evacuation_network
-    restart: unless-stopped
-
-volumes:
-  redis_data:
-    driver: local
 
 networks:
   evacuation_network:

@@ -40,6 +40,9 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy built application from build stage
 COPY --from=build --chown=nestjs:nodejs /app/dist ./dist
 
+# Copy environment file
+COPY --chown=nestjs:nodejs .env.production ./
+
 # Create logs directory
 RUN mkdir -p logs && chown -R nestjs:nodejs logs
 

@@ -53,7 +53,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.client = createClient(redisConfig);
-
     this.client.on('error', (err) => {
       this.logger.error('Redis Client Error', err);
     });
