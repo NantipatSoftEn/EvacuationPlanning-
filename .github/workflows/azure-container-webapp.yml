@@ -22,7 +22,7 @@ jobs:
     - name: Log in to registry
       uses: docker/login-action@v2
       with:
-        registry: https://evacutionplaning.azurecr.io/
+        registry: https://evacution.azurecr.io/
         username: ${{ secrets.AzureAppService_ContainerUsername_ff87d6db31b94a18aa5805a542ffb476 }}
         password: ${{ secrets.AzureAppService_ContainerPassword_74ca0518d44a485796ce2ca19de1ea97 }}
 
