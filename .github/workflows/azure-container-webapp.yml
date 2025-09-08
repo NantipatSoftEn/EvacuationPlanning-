@@ -46,7 +46,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'evacuation'
+          app-name: 'nesjsapp'
           slot-name: 'production'
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_b57e6e4b9ffe4583912aba8d443edb8d }}
-          images: 'evacuation.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_69666a375480421e9cb40acacdd9e947 }}/react-azure-amd:${{ github.sha }}'
+          images: 'evacuation.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_69666a375480421e9cb40acacdd9e947 }}/evacuation-api:${{ github.sha }}'
