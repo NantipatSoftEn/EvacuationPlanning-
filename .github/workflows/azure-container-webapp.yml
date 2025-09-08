@@ -30,7 +30,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: evacutionplaning.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_ff87d6db31b94a18aa5805a542ffb476 }}/evacuation-api:${{ github.sha }}
+        tags: evacution.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_ff87d6db31b94a18aa5805a542ffb476 }}/evacuation-api:${{ github.sha }}
         file: ./Dockerfile
 
   deploy:
@@ -48,4 +48,4 @@ jobs:
         app-name: 'wep-app-evacuation-planning'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_bd0b85fcb82546f3957ccaeed6caf71d }}
-        images: 'evacutionplaning.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_ff87d6db31b94a18aa5805a542ffb476 }}/evacuation-api:${{ github.sha }}'
+        images: 'evacution.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_ff87d6db31b94a18aa5805a542ffb476 }}/evacuation-api:${{ github.sha }}'
