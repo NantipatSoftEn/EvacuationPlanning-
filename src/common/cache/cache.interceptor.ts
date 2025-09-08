@@ -17,16 +17,19 @@ export interface CacheConfigMetadata {
 @Injectable()
 export class CacheInterceptor implements NestInterceptor {
   private readonly logger = new Logger(CacheInterceptor.name);
+  private readonly isRedisEnabled: boolean;
 
   constructor(
     private readonly redisService: RedisService,
     private readonly reflector: Reflector
-  ) {}
+  ) {
+    this.isRedisEnabled = process.env.REDIS_ENABLED === 'true';
+  }
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     const cacheConfig = this.reflector.get<CacheConfigMetadata>('cacheConfig', context.getHandler());
     
-    if (!cacheConfig) {
+    if (!cacheConfig || !this.isRedisEnabled) {
       return next.handle();
     }
 

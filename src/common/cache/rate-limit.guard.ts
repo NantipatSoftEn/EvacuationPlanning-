@@ -14,16 +14,20 @@ export interface RateLimitMetadata {
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
+  private readonly isRedisEnabled: boolean;
+
   constructor(
     private readonly redisService: RedisService,
     private readonly reflector: Reflector
-  ) {}
+  ) {
+    this.isRedisEnabled = process.env.REDIS_ENABLED === 'true';
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const rateLimitConfig = this.reflector.get<RateLimitMetadata>('rateLimit', context.getHandler());
     
-    if (!rateLimitConfig) {
-      return true; // No rate limiting configured
+    if (!rateLimitConfig || !this.isRedisEnabled) {
+      return true; // No rate limiting configured or Redis disabled
     }
 
     const request = context.switchToHttp().getRequest();

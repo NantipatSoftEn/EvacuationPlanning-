@@ -6,8 +6,16 @@ import * as crypto from 'crypto';
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: RedisClientType;
   private readonly logger = new Logger(RedisService.name);
+  private readonly isRedisEnabled: boolean;
 
   constructor() {
+    this.isRedisEnabled = process.env.REDIS_ENABLED === 'true';
+    
+    if (!this.isRedisEnabled) {
+      this.logger.log('Redis is disabled via REDIS_ENABLED environment variable');
+      return;
+    }
+
     let redisConfig: any;
 
     // For Azure Redis Cache with authentication
@@ -63,15 +71,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    await this.client.connect();
+    if (this.isRedisEnabled && this.client) {
+      await this.client.connect();
+    }
   }
 
   async onModuleDestroy() {
-    await this.client.disconnect();
+    if (this.isRedisEnabled && this.client) {
+      await this.client.disconnect();
+    }
   }
 
   // Generic cache methods
   async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     const serialized = JSON.stringify(value);
     if (ttlSeconds) {
       await this.client.setEx(key, ttlSeconds, serialized);
@@ -81,6 +97,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async get<T>(key: string): Promise<T | null> {
+    if (!this.isRedisEnabled) {
+      return null;
+    }
+    
     try {
       const value = await this.client.get(key);
       return value ? JSON.parse(value) : null;
@@ -91,10 +111,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async del(key: string): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     await this.client.del(key);
   }
 
   async exists(key: string): Promise<boolean> {
+    if (!this.isRedisEnabled) {
+      return false;
+    }
+    
     return (await this.client.exists(key)) === 1;
   }
 
@@ -105,12 +133,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async cachePlan(zones: any[], vehicles: any[], options: any, plan: any): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     const key = this.generatePlanCacheKey(zones, vehicles, options);
     const ttl = parseInt(process.env.REDIS_TTL || '300'); // 5 minutes default
     await this.set(key, { plan, cachedAt: new Date() }, ttl);
   }
 
   async getCachedPlan(zones: any[], vehicles: any[], options: any): Promise<any | null> {
+    if (!this.isRedisEnabled) {
+      return null;
+    }
+    
     const key = this.generatePlanCacheKey(zones, vehicles, options);
     return await this.get(key);
   }
@@ -121,6 +157,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     currentLocation?: { latitude: number; longitude: number };
     lastUpdated?: Date;
   }): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     const key = `vehicle:${vehicleId}:status`;
     await this.set(key, { ...status, lastUpdated: new Date() });
     
@@ -133,22 +173,38 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getVehicleStatus(vehicleId: string): Promise<any | null> {
+    if (!this.isRedisEnabled) {
+      return null;
+    }
+    
     const key = `vehicle:${vehicleId}:status`;
     return await this.get(key);
   }
 
   async getAvailableVehicles(): Promise<string[]> {
+    if (!this.isRedisEnabled) {
+      return [];
+    }
+    
     return await this.client.sMembers('available_vehicles');
   }
 
   // Session-based plans
   async setSessionPlan(sessionId: string, plan: any): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     const key = `evacuation_plan:session:${sessionId}`;
     const ttl = 2 * 60 * 60; // 2 hours
     await this.set(key, plan, ttl);
   }
 
   async getSessionPlan(sessionId: string): Promise<any | null> {
+    if (!this.isRedisEnabled) {
+      return null;
+    }
+    
     const key = `evacuation_plan:session:${sessionId}`;
     return await this.get(key);
   }
@@ -160,6 +216,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     distance: number,
     travelTime: number
   ): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     const key = `distance:${from.latitude},${from.longitude}:${to.latitude},${to.longitude}`;
     const ttl = 24 * 60 * 60; // 24 hours
     await this.set(key, { distance, travelTime }, ttl);
@@ -169,12 +229,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     from: { latitude: number; longitude: number },
     to: { latitude: number; longitude: number }
   ): Promise<{ distance: number; travelTime: number } | null> {
+    if (!this.isRedisEnabled) {
+      return null;
+    }
+    
     const key = `distance:${from.latitude},${from.longitude}:${to.latitude},${to.longitude}`;
     return await this.get(key);
   }
 
   // Rate limiting
   async checkRateLimit(identifier: string, endpoint: string, maxRequests: number = 10, windowSeconds: number = 60): Promise<boolean> {
+    if (!this.isRedisEnabled) {
+      return true; // Allow all requests when Redis is disabled
+    }
+    
     const key = `rate_limit:${identifier}:${endpoint}`;
     const current = await this.client.incr(key);
     
@@ -187,16 +255,28 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   // Analytics
   async incrementCounter(key: string): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     await this.client.incr(key);
   }
 
   async trackResponseTime(endpoint: string, responseTime: number): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     const key = `response_times:${endpoint}`;
     await this.client.lPush(key, responseTime.toString());
     await this.client.lTrim(key, 0, 999); // Keep last 1000 entries
   }
 
   async getStats(pattern: string): Promise<Record<string, string>> {
+    if (!this.isRedisEnabled) {
+      return {};
+    }
+    
     const keys = await this.client.keys(pattern);
     const stats: Record<string, string> = {};
     
@@ -209,10 +289,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   // Utility methods
   async flush(): Promise<void> {
+    if (!this.isRedisEnabled) {
+      return;
+    }
+    
     await this.client.flushAll();
   }
 
   async info(): Promise<string> {
+    if (!this.isRedisEnabled) {
+      return 'Redis is disabled';
+    }
+    
     return await this.client.info();
   }
 }
