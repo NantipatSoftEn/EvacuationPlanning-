@@ -35,7 +35,7 @@ jobs:
           push: true
           tags: evacution.azurecr.io/evacuation-api:${{ github.sha }},evacution.azurecr.io/evacuation-api:latest
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
   deploy:
     runs-on: ubuntu-latest
