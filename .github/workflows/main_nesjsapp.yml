@@ -60,5 +60,5 @@ jobs:
         with:
           app-name: 'nesjsapp'
           slot-name: 'Production'
-          images: 'evacution.azurecr.io/evacuation-api:${{ github.sha }}'
+          images: 'evacution.azurecr.io/evacuation-api:latest'
           
