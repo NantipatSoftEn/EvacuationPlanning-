@@ -25,15 +25,15 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: evacution.azurecr.io/
-          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_B0B9EFA0FFEF449CB879C3A6CA783DCC }}
-          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_9B13F2D095FA427EB1FA25A2507AE619 }}
+          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_6C02DA3B5AE44A1B8307D14E36F75778 }}
+          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_C3C9362243FE45B98673C0AEFBC94A96 }}
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: evacution.azurecr.io/evacuation-api:latest
+          tags: evacution.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_6C02DA3B5AE44A1B8307D14E36F75778 }}/evacuation-api:${{ github.sha }}
           file: ./Dockerfile
 
   deploy:
@@ -49,9 +49,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A646B7FE95F648BFA379BB182A8FAF77 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_76F76482D8824307BBBEBAACDA35450A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_020D03FECC364E3EA0ADEA6B70DB8FE4 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_71D936F7E24640F0B1E1A19EF65F2B70 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6769FA382AF946DC922C22586A7C6912 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AC251F5AF37C44D099F3681802593A35 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -59,4 +59,5 @@ jobs:
         with:
           app-name: 'nestjs2'
           slot-name: 'Production'
-          images: evacution.azurecr.io/evacuation-api:latest
+          images: 'evacution.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_6C02DA3B5AE44A1B8307D14E36F75778 }}/evacuation-api:${{ github.sha }}'
+          
