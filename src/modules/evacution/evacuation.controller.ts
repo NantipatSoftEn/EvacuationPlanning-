@@ -1,10 +1,12 @@
 import { Body, Controller, Delete, Get, Post, Put, UseGuards, UseInterceptors, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { EvacuationPlanRequestDto, EvacuationPlanResponseDto, EvacuationStatusDto, EvacuationUpdateDto } from './evacuation-plan.dto';
 import { EvacuationService } from './evacuation.service';
 import { RateLimit, RateLimitGuard } from '@common/cache/rate-limit.guard';
 import { CacheConfig, CacheInterceptor } from '@common/cache/cache.interceptor';
 import { RedisService } from '@common/cache/redis.service';
 
+@ApiTags('evacuations')
 @Controller('/evacuations')
 export class EvacuationController {
   constructor(
@@ -15,6 +17,38 @@ export class EvacuationController {
   @Post('plan')
   @UseGuards(RateLimitGuard)
   @RateLimit(5, 60) // 5 requests per minute
+  @ApiOperation({ 
+    summary: 'Generate evacuation plan', 
+    description: 'Generate an optimized evacuation plan using specified strategy (greedy or weighted)' 
+  })
+  @ApiBody({
+    description: 'Evacuation plan request parameters',
+    examples: {
+      'greedy': {
+        summary: 'Greedy strategy with basic parameters',
+        value: {
+          strategy: 'greedy',
+          maxDistanceKm: 50,
+          allowMultiVehicle: true,
+          preferFewerTrips: true,
+          speedFallbackKmh: 40
+        }
+      },
+      'weighted': {
+        summary: 'Weighted strategy with advanced parameters',
+        value: {
+          strategy: 'weighted',
+          maxDistanceKm: 100,
+          allowMultiVehicle: true,
+          preferFewerTrips: false,
+          speedFallbackKmh: 45
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 201, description: 'Evacuation plan generated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input parameters' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded' })
   async generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
     const startTime = Date.now();
     
@@ -60,6 +94,8 @@ export class EvacuationController {
   }
 
   @Get('status')
+  @ApiOperation({ summary: 'Get evacuation status', description: 'Retrieve current evacuation status for all zones' })
+  @ApiResponse({ status: 200, description: 'Evacuation status retrieved successfully' })
   getEvacuationStatus() {
     const status = this.evacuationService.getEvacuationStatus();
     return {
@@ -68,7 +104,33 @@ export class EvacuationController {
     };
   }
 
-    @Put('update')
+  @Put('update')
+  @ApiOperation({ 
+    summary: 'Update evacuation status', 
+    description: 'Update the evacuation progress for a specific zone' 
+  })
+  @ApiBody({
+    description: 'Evacuation update parameters',
+    examples: {
+      'by-id': {
+        summary: 'Update by zone ID',
+        value: {
+          id: 'zone-001',
+          vehicleId: 'v-001'
+        }
+      },
+      'by-location': {
+        summary: 'Update by zone location',
+        value: {
+          zoneLocation: '13.7563,100.5018',
+          vehicleId: 'v-002'
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 200, description: 'Evacuation status updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 404, description: 'Zone not found' })
   updateEvacuationStatus(@Body() update: EvacuationUpdateDto) {
     console.log("update", update);
     
@@ -103,6 +165,11 @@ export class EvacuationController {
   }
 
   @Delete('clear')
+  @ApiOperation({ 
+    summary: 'Clear all evacuation plans', 
+    description: 'Clear all evacuation plans and cache data' 
+  })
+  @ApiResponse({ status: 200, description: 'All evacuation plans and cache cleared successfully' })
   async clearEvacuationPlans() {
     const result = this.evacuationService.clearEvacuationPlans();
     
@@ -126,6 +193,12 @@ export class EvacuationController {
   @Get('stats')
   @UseGuards(RateLimitGuard)
   @RateLimit(20, 60) // 20 requests per minute for stats
+  @ApiOperation({ 
+    summary: 'Get system statistics', 
+    description: 'Retrieve daily statistics, strategy usage, and cache information' 
+  })
+  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded' })
   async getStats() {
     try {
       const today = new Date().toISOString().split('T')[0];
