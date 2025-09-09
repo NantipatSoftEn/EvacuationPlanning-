@@ -1,39 +1,9 @@
 import { EvacuationAssignment } from '@common/types/EvacuationAssignment';
 import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service';
 import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
+import { estimateTravelTime } from '@common/utils/estimate-travel-time';
+import { haversineDistance } from '@common/utils/haversine-distance';
 
-// ===== Weighted Strategy =====
-// Priority: urgency > capacity > distance > ETA
-
-// Haversine formula คำนวณระยะทางระหว่างสองจุด (กม.)
-export function haversineDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-): number {
-    const R = 6371; // รัศมีโลก (km)
-    const toRad = (deg: number) => (deg * Math.PI) / 180;
-
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-
-    const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-}
-
-export function estimateTravelTime(
-    distanceKm: number,
-    speedKmh: number,
-): number {
-    if (speedKmh <= 0) return Infinity;
-    return (distanceKm / speedKmh) * 60;
-}
 
 // คำนวณคะแนนถ่วงน้ำหนักสำหรับการจับคู่ zone-vehicle
 function calculateWeightedScore(

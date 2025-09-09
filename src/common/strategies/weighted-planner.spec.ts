@@ -2,11 +2,11 @@ import {
     generateWeightedPlan, 
     chooseBestVehicleWeighted, 
     calculateWeightedScore,
-    haversineDistance,
-    estimateTravelTime
 } from './weighted-planer';
 import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service';
 import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
+import { estimateTravelTime } from '@common/utils/estimate-travel-time';
+import { haversineDistance } from '@common/utils/haversine-distance';
 
 describe('Weighted Planner Strategy', () => {
     const mockZones: ProcessedEvacuationZone[] = [
