@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { CustomLogger } from './common/logger/custom-logger.service';
 import helmet from 'helmet';
 import compression from 'compression';
 import * as dotenv from 'dotenv';
@@ -15,9 +14,8 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.en
 dotenv.config({ path: join(process.cwd(), envFile) });
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, {
-        logger: new CustomLogger(),
-    });
+    // ใช้ logger ธรรมดา
+    const app = await NestFactory.create(AppModule);
 
     // Security middleware
     app.use(helmet());
@@ -48,11 +46,11 @@ async function bootstrap() {
     // Enable validation globally
     app.useGlobalPipes(
         new ValidationPipe({
-            whitelist: true, // Remove properties that don't have decorators
-            forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are provided
-            transform: true, // Automatically transform payloads to DTO instances
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
             transformOptions: {
-                enableImplicitConversion: true, // Allow implicit type conversion
+                enableImplicitConversion: true,
             },
         }),
     );
@@ -65,11 +63,10 @@ async function bootstrap() {
     const port = process.env.PORT ?? 3000;
     await app.listen(port);
 
-    // Log startup information
-    const logger = new CustomLogger();
-    logger.log(`🚀 Application is running on: http://localhost:${port}`, 'Bootstrap');
-    logger.log(`📚 API Documentation: http://localhost:${port}/docs`, 'Bootstrap');
-    logger.log(`💊 Health Check: http://localhost:${port}/health`, 'Bootstrap');
+    // ใช้ console.log ธรรมดา
+    console.log(`🚀 Application is running on: http://localhost:${port}`);
+    console.log(`📚 API Documentation: http://localhost:${port}/docs`);
+    console.log(`💊 Health Check: http://localhost:${port}/health`);
 
     if (module.hot) {
         module.hot.accept();
