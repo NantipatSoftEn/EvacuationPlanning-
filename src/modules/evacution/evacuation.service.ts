@@ -1,8 +1,4 @@
-import {
-    Injectable,
-    BadRequestException,
-    NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { EvacuationZoneDto } from './evacuation-zone.dto';
 import { VehicleService } from '../vehicle/vehicle.service';
 import { RedisService } from '@common/cache/redis.service';
@@ -110,9 +106,7 @@ export class EvacuationService {
         });
 
         if (errors.length > 0) {
-            throw new BadRequestException(
-                `Failed to add some zones: ${errors.join(', ')}`,
-            );
+            throw new BadRequestException(`Failed to add some zones: ${errors.join(', ')}`);
         }
 
         return results;
@@ -124,8 +118,7 @@ export class EvacuationService {
             zone.locationCoordinates &&
             zone.numberOfPeople !== undefined &&
             zone.urgencyLevel !== undefined;
-        const hasLegacyFormat =
-            zone.location && zone.people !== undefined && zone.urgency;
+        const hasLegacyFormat = zone.location && zone.people !== undefined && zone.urgency;
 
         if (!hasNewFormat && !hasLegacyFormat) {
             throw new BadRequestException(
@@ -138,19 +131,12 @@ export class EvacuationService {
         // Validate new format
         if (hasNewFormat) {
             if (zone.urgencyLevel! < 1 || zone.urgencyLevel! > 5) {
-                throw new BadRequestException(
-                    'Urgency level must be between 1 and 5',
-                );
+                throw new BadRequestException('Urgency level must be between 1 and 5');
             }
             if (zone.numberOfPeople! <= 0) {
-                throw new BadRequestException(
-                    'Number of people must be greater than 0',
-                );
+                throw new BadRequestException('Number of people must be greater than 0');
             }
-            if (
-                !zone.locationCoordinates!.latitude ||
-                !zone.locationCoordinates!.longitude
-            ) {
+            if (!zone.locationCoordinates!.latitude || !zone.locationCoordinates!.longitude) {
                 throw new BadRequestException(
                     'Valid latitude and longitude coordinates are required',
                 );
@@ -160,16 +146,10 @@ export class EvacuationService {
         // Validate legacy format
         if (hasLegacyFormat && !hasNewFormat) {
             if (zone.people! <= 0) {
-                throw new BadRequestException(
-                    'Number of people must be greater than 0',
-                );
+                throw new BadRequestException('Number of people must be greater than 0');
             }
-            if (
-                !['low', 'medium', 'high'].includes(zone.urgency!.toLowerCase())
-            ) {
-                throw new BadRequestException(
-                    'Urgency must be low, medium, or high',
-                );
+            if (!['low', 'medium', 'high'].includes(zone.urgency!.toLowerCase())) {
+                throw new BadRequestException('Urgency must be low, medium, or high');
             }
         }
     }
@@ -184,13 +164,10 @@ export class EvacuationService {
 
     async generateEvacuationPlan(
         vehicles?: any[],
-        options?: Partial<
-            EvacuationPlanOptions & { strategy?: 'greedy' | 'weighted' }
-        >,
+        options?: Partial<EvacuationPlanOptions & { strategy?: 'greedy' | 'weighted' }>,
     ) {
         // Use provided vehicles or get all available vehicles from service
-        const availableVehicles =
-            vehicles || this.vehicleService.getAllVehicles();
+        const availableVehicles = vehicles || this.vehicleService.getAllVehicles();
 
         const strategy = options?.strategy || 'greedy'; // Default to greedy strategy
 
@@ -209,10 +186,7 @@ export class EvacuationService {
                 };
             }
         } catch (error) {
-            console.warn(
-                'Redis cache error, proceeding without cache:',
-                error.message,
-            );
+            console.warn('Redis cache error, proceeding without cache:', error.message);
         }
 
         if (availableVehicles.length === 0) {
@@ -246,15 +220,9 @@ export class EvacuationService {
 
         // Use selected strategy
         if (strategy === 'weighted') {
-            assignments = generateWeightedPlan(
-                this.evacuationZones,
-                availableVehicles,
-            );
+            assignments = generateWeightedPlan(this.evacuationZones, availableVehicles);
         } else {
-            assignments = generateGreedyPlan(
-                this.evacuationZones,
-                availableVehicles,
-            );
+            assignments = generateGreedyPlan(this.evacuationZones, availableVehicles);
         }
 
         // Convert assignments to the expected format
@@ -278,8 +246,7 @@ export class EvacuationService {
                     vehicleId: assignment.vehicleId,
                     vehicleType: vehicle.type,
                     vehicleCapacity: vehicle.capacity,
-                    assignedZone:
-                        zone.location || `Zone ${zone.zoneId || zone.id}`,
+                    assignedZone: zone.location || `Zone ${zone.zoneId || zone.id}`,
                     zoneId: zone.zoneId || zone.id,
                     zoneCoordinates: zone.locationCoordinates || {
                         latitude: 0,
@@ -292,22 +259,17 @@ export class EvacuationService {
                     distanceKm: distanceKm,
                     travelTimeHours: travelTimeMinutes / 60,
                     travelTimeMinutes: travelTimeMinutes,
-                    travelTimeFormatted:
-                        this.formatTravelTime(travelTimeMinutes),
+                    travelTimeFormatted: this.formatTravelTime(travelTimeMinutes),
                     eta: this.calculateETA(travelTimeMinutes),
                     speedKmh: vehicle.speed || 50,
                 };
             }),
         );
 
-        const validAssignments = formattedAssignments.filter(
-            (assignment) => assignment !== null,
-        );
+        const validAssignments = formattedAssignments.filter((assignment) => assignment !== null);
 
         // Calculate summary statistics
-        const totalVehiclesAssigned = new Set(
-            validAssignments.map((a) => a.vehicleId),
-        ).size;
+        const totalVehiclesAssigned = new Set(validAssignments.map((a) => a.vehicleId)).size;
         const totalPeopleToEvacuate = validAssignments.reduce(
             (sum, a) => sum + a.peopleToEvacuate,
             0,
@@ -315,20 +277,13 @@ export class EvacuationService {
         const highPriorityZones = this.evacuationZones.filter(
             (z) => this.getUrgencyCategory(z) === 'high',
         ).length;
-        const totalDistanceKm = validAssignments.reduce(
-            (sum, a) => sum + a.distanceKm,
-            0,
-        );
+        const totalDistanceKm = validAssignments.reduce((sum, a) => sum + a.distanceKm, 0);
         const averageDistance =
-            validAssignments.length > 0
-                ? totalDistanceKm / validAssignments.length
-                : 0;
+            validAssignments.length > 0 ? totalDistanceKm / validAssignments.length : 0;
         const averageTravelTime =
             validAssignments.length > 0
-                ? validAssignments.reduce(
-                      (sum, a) => sum + a.travelTimeMinutes,
-                      0,
-                  ) / validAssignments.length
+                ? validAssignments.reduce((sum, a) => sum + a.travelTimeMinutes, 0) /
+                  validAssignments.length
                 : 0;
 
         // Count zones coverage
@@ -338,10 +293,7 @@ export class EvacuationService {
             const zoneAssignments = validAssignments.filter(
                 (a) => a.zoneId === (zone.zoneId || zone.id),
             );
-            const totalEvacuated = zoneAssignments.reduce(
-                (sum, a) => sum + a.peopleToEvacuate,
-                0,
-            );
+            const totalEvacuated = zoneAssignments.reduce((sum, a) => sum + a.peopleToEvacuate, 0);
             const totalPeople = zone.numberOfPeople || zone.people || 0;
             return totalEvacuated >= totalPeople;
         }).length;
@@ -406,10 +358,7 @@ export class EvacuationService {
     }
 
     // Helper methods
-    private async calculateDistance(
-        zone: ProcessedEvacuationZone,
-        vehicle: any,
-    ): Promise<number> {
+    private async calculateDistance(zone: ProcessedEvacuationZone, vehicle: any): Promise<number> {
         if (!zone.locationCoordinates || !vehicle.locationCoordinates) {
             return 0;
         }
@@ -431,22 +380,16 @@ export class EvacuationService {
         const lat1 = (zone.locationCoordinates.latitude * Math.PI) / 180;
         const lat2 = (vehicle.locationCoordinates.latitude * Math.PI) / 180;
         const deltaLat =
-            ((vehicle.locationCoordinates.latitude -
-                zone.locationCoordinates.latitude) *
-                Math.PI) /
+            ((vehicle.locationCoordinates.latitude - zone.locationCoordinates.latitude) * Math.PI) /
             180;
         const deltaLng =
-            ((vehicle.locationCoordinates.longitude -
-                zone.locationCoordinates.longitude) *
+            ((vehicle.locationCoordinates.longitude - zone.locationCoordinates.longitude) *
                 Math.PI) /
             180;
 
         const a =
             Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1) *
-                Math.cos(lat2) *
-                Math.sin(deltaLng / 2) *
-                Math.sin(deltaLng / 2);
+            Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         const distance = R * c;
@@ -552,9 +495,7 @@ export class EvacuationService {
         );
 
         if (!zone) {
-            throw new NotFoundException(
-                `Zone with ID or location '${idOrLocation}' not found`,
-            );
+            throw new NotFoundException(`Zone with ID or location '${idOrLocation}' not found`);
         }
 
         const totalPeople = zone.numberOfPeople || zone.people || 0;
@@ -580,8 +521,7 @@ export class EvacuationService {
     clearEvacuationPlans() {
         this.evacuationZones = [];
         return {
-            message:
-                'All evacuation plans have been cleared and data has been reset',
+            message: 'All evacuation plans have been cleared and data has been reset',
             success: true,
         };
     }

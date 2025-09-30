@@ -10,8 +10,7 @@ export class HealthController {
     @Get()
     @ApiOperation({
         summary: 'Health check',
-        description:
-            'Check the health status of the API and its dependencies (Redis)',
+        description: 'Check the health status of the API and its dependencies (Redis)',
     })
     @ApiResponse({
         status: 200,
@@ -93,11 +92,7 @@ export class HealthController {
         let redisInfo = {};
 
         try {
-            await this.redisService.set(
-                'health_check',
-                { timestamp: new Date() },
-                5,
-            );
+            await this.redisService.set('health_check', { timestamp: new Date() }, 5);
             const healthCheck = await this.redisService.get('health_check');
             if (healthCheck) {
                 redisStatus = 'up';

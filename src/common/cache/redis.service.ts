@@ -1,9 +1,4 @@
-import {
-    Injectable,
-    Logger,
-    OnModuleDestroy,
-    OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
 import * as crypto from 'crypto';
 
@@ -17,9 +12,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         this.isRedisEnabled = process.env.REDIS_ENABLED === 'true';
 
         if (!this.isRedisEnabled) {
-            this.logger.log(
-                'Redis is disabled via REDIS_ENABLED environment variable',
-            );
+            this.logger.log('Redis is disabled via REDIS_ENABLED environment variable');
             return;
         }
 
@@ -139,12 +132,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         return `evacuation_plan:${crypto.createHash('md5').update(JSON.stringify(data)).digest('hex')}`;
     }
 
-    async cachePlan(
-        zones: any[],
-        vehicles: any[],
-        options: any,
-        plan: any,
-    ): Promise<void> {
+    async cachePlan(zones: any[], vehicles: any[], options: any, plan: any): Promise<void> {
         if (!this.isRedisEnabled) {
             return;
         }
@@ -154,11 +142,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.set(key, { plan, cachedAt: new Date() }, ttl);
     }
 
-    async getCachedPlan(
-        zones: any[],
-        vehicles: any[],
-        options: any,
-    ): Promise<any | null> {
+    async getCachedPlan(zones: any[], vehicles: any[], options: any): Promise<any | null> {
         if (!this.isRedisEnabled) {
             return null;
         }
@@ -286,10 +270,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.client.incr(key);
     }
 
-    async trackResponseTime(
-        endpoint: string,
-        responseTime: number,
-    ): Promise<void> {
+    async trackResponseTime(endpoint: string, responseTime: number): Promise<void> {
         if (!this.isRedisEnabled) {
             return;
         }

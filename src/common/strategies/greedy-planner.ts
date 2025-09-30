@@ -58,9 +58,7 @@ function generateGreedyPlan(
     const vehiclesWorkingCopy = vehicles.map((vehicle) => ({ ...vehicle }));
 
     // เรียง zone ตาม urgency มาก → น้อย
-    zonesWorkingCopy.sort(
-        (a, b) => (b.urgencyLevel || 0) - (a.urgencyLevel || 0),
-    );
+    zonesWorkingCopy.sort((a, b) => (b.urgencyLevel || 0) - (a.urgencyLevel || 0));
 
     for (const zone of zonesWorkingCopy) {
         const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated;
@@ -68,11 +66,7 @@ function generateGreedyPlan(
 
         while (peopleToEvacuate > 0) {
             const vehicle = chooseBestVehicleGreedy(zone, vehiclesWorkingCopy);
-            if (
-                !vehicle ||
-                !zone.locationCoordinates ||
-                !vehicle.locationCoordinates
-            ) {
+            if (!vehicle || !zone.locationCoordinates || !vehicle.locationCoordinates) {
                 break; // ไม่มีรถเหมาะสมแล้วหรือไม่มีข้อมูล coordinates
             }
 

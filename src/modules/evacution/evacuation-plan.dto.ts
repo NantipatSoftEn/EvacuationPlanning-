@@ -1,11 +1,4 @@
-import {
-    IsOptional,
-    IsNumber,
-    IsBoolean,
-    IsString,
-    IsIn,
-    Min,
-} from 'class-validator';
+import { IsOptional, IsNumber, IsBoolean, IsString, IsIn, Min } from 'class-validator';
 
 export class VehicleDto {
     id?: string;

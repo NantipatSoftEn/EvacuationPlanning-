@@ -36,15 +36,9 @@ export class EvacuationController {
     @RateLimit(5, 60) // 5 requests per minute
     @ApiOperation(EvacuationSwaggerConfig.generateEvacuationPlan.operation)
     @ApiBody(EvacuationSwaggerConfig.generateEvacuationPlan.body)
-    @ApiResponse(
-        EvacuationSwaggerConfig.generateEvacuationPlan.responses.success,
-    )
-    @ApiResponse(
-        EvacuationSwaggerConfig.generateEvacuationPlan.responses.badRequest,
-    )
-    @ApiResponse(
-        EvacuationSwaggerConfig.generateEvacuationPlan.responses.rateLimit,
-    )
+    @ApiResponse(EvacuationSwaggerConfig.generateEvacuationPlan.responses.success)
+    @ApiResponse(EvacuationSwaggerConfig.generateEvacuationPlan.responses.badRequest)
+    @ApiResponse(EvacuationSwaggerConfig.generateEvacuationPlan.responses.rateLimit)
     async generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
         const startTime = Date.now();
 
@@ -58,18 +52,12 @@ export class EvacuationController {
 
         // Get vehicles from the service (you might want to get them from database or other source)
         const vehicles = this.evacuationService.getAvailableVehicles();
-        const result = await this.evacuationService.generateEvacuationPlan(
-            vehicles,
-            options,
-        );
+        const result = await this.evacuationService.generateEvacuationPlan(vehicles, options);
 
         // Track response time
         const responseTime = Date.now() - startTime;
         try {
-            await this.redisService.trackResponseTime(
-                'evacuation_plan',
-                responseTime,
-            );
+            await this.redisService.trackResponseTime('evacuation_plan', responseTime);
         } catch (error) {
             // Analytics error doesn't affect response
         }
@@ -109,15 +97,9 @@ export class EvacuationController {
     @Put('update')
     @ApiOperation(EvacuationSwaggerConfig.updateEvacuationStatus.operation)
     @ApiBody(EvacuationSwaggerConfig.updateEvacuationStatus.body)
-    @ApiResponse(
-        EvacuationSwaggerConfig.updateEvacuationStatus.responses.success,
-    )
-    @ApiResponse(
-        EvacuationSwaggerConfig.updateEvacuationStatus.responses.badRequest,
-    )
-    @ApiResponse(
-        EvacuationSwaggerConfig.updateEvacuationStatus.responses.notFound,
-    )
+    @ApiResponse(EvacuationSwaggerConfig.updateEvacuationStatus.responses.success)
+    @ApiResponse(EvacuationSwaggerConfig.updateEvacuationStatus.responses.badRequest)
+    @ApiResponse(EvacuationSwaggerConfig.updateEvacuationStatus.responses.notFound)
     updateEvacuationStatus(@Body() update: EvacuationUpdateDto) {
         console.log('update', update);
 

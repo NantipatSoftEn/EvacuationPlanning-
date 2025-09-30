@@ -99,14 +99,8 @@ describe('Weighted Planner Strategy', () => {
             const lowUrgencyZone = { ...mockZones[1], urgencyLevel: 1 };
             const vehicle = mockVehicles[0];
 
-            const highUrgencyScore = calculateWeightedScore(
-                highUrgencyZone,
-                vehicle,
-            );
-            const lowUrgencyScore = calculateWeightedScore(
-                lowUrgencyZone,
-                vehicle,
-            );
+            const highUrgencyScore = calculateWeightedScore(highUrgencyZone, vehicle);
+            const lowUrgencyScore = calculateWeightedScore(lowUrgencyZone, vehicle);
 
             expect(highUrgencyScore).toBeLessThan(lowUrgencyScore);
         });
@@ -116,14 +110,8 @@ describe('Weighted Planner Strategy', () => {
             const perfectCapacityVehicle = { ...mockVehicles[1], capacity: 40 }; // Perfect match
             const excessCapacityVehicle = { ...mockVehicles[1], capacity: 80 }; // Too much capacity
 
-            const perfectScore = calculateWeightedScore(
-                zone,
-                perfectCapacityVehicle,
-            );
-            const excessScore = calculateWeightedScore(
-                zone,
-                excessCapacityVehicle,
-            );
+            const perfectScore = calculateWeightedScore(zone, perfectCapacityVehicle);
+            const excessScore = calculateWeightedScore(zone, excessCapacityVehicle);
 
             expect(perfectScore).toBeLessThan(excessScore);
         });
@@ -138,12 +126,8 @@ describe('Weighted Planner Strategy', () => {
                 locationCoordinates: undefined,
             };
 
-            expect(calculateWeightedScore(zoneNoCoords, mockVehicles[0])).toBe(
-                Infinity,
-            );
-            expect(calculateWeightedScore(mockZones[0], vehicleNoCoords)).toBe(
-                Infinity,
-            );
+            expect(calculateWeightedScore(zoneNoCoords, mockVehicles[0])).toBe(Infinity);
+            expect(calculateWeightedScore(mockZones[0], vehicleNoCoords)).toBe(Infinity);
         });
     });
 
@@ -164,10 +148,7 @@ describe('Weighted Planner Strategy', () => {
                 capacity: 0,
             }));
 
-            const bestVehicle = chooseBestVehicleWeighted(
-                zone,
-                noCapacityVehicles,
-            );
+            const bestVehicle = chooseBestVehicleWeighted(zone, noCapacityVehicles);
             expect(bestVehicle).toBeNull();
         });
 
@@ -175,10 +156,7 @@ describe('Weighted Planner Strategy', () => {
             const evacuatedZone = { ...mockZones[0], evacuated: 40 }; // All people evacuated
             const vehicles = [...mockVehicles];
 
-            const bestVehicle = chooseBestVehicleWeighted(
-                evacuatedZone,
-                vehicles,
-            );
+            const bestVehicle = chooseBestVehicleWeighted(evacuatedZone, vehicles);
             expect(bestVehicle).toBeNull();
         });
     });
@@ -211,9 +189,7 @@ describe('Weighted Planner Strategy', () => {
             const plan = generateWeightedPlan(zones, vehicles);
 
             // Find assignments for high urgency zone (Z1, urgencyLevel: 5)
-            const highUrgencyAssignments = plan.filter(
-                (p) => p.zoneId === 'Z1',
-            );
+            const highUrgencyAssignments = plan.filter((p) => p.zoneId === 'Z1');
 
             // Should have assignments for high urgency zone
             expect(highUrgencyAssignments.length).toBeGreaterThan(0);
@@ -240,9 +216,7 @@ describe('Weighted Planner Strategy', () => {
             zones.forEach((zone) => {
                 const zoneId = zone.zoneId || zone.id;
                 const totalEvacuated = assignmentsByZone[zoneId] || 0;
-                expect(totalEvacuated).toBeLessThanOrEqual(
-                    zone.numberOfPeople || 0,
-                );
+                expect(totalEvacuated).toBeLessThanOrEqual(zone.numberOfPeople || 0);
             });
         });
 
@@ -257,9 +231,7 @@ describe('Weighted Planner Strategy', () => {
                     (v) => (v.vehicleId || v.id) === assignment.vehicleId,
                 );
                 expect(vehicle).toBeDefined();
-                expect(assignment.evacuated).toBeLessThanOrEqual(
-                    vehicle!.capacity,
-                );
+                expect(assignment.evacuated).toBeLessThanOrEqual(vehicle!.capacity);
             });
         });
 
@@ -292,14 +264,8 @@ describe('Weighted Planner Strategy', () => {
 
             const vehicle = mockVehicles[0];
 
-            const nearScore = calculateWeightedScore(
-                nearZoneLowUrgency,
-                vehicle,
-            );
-            const farScore = calculateWeightedScore(
-                farZoneHighUrgency,
-                vehicle,
-            );
+            const nearScore = calculateWeightedScore(nearZoneLowUrgency, vehicle);
+            const farScore = calculateWeightedScore(farZoneHighUrgency, vehicle);
 
             // High urgency should get better score even if farther
             expect(farScore).toBeLessThan(nearScore);
@@ -328,14 +294,8 @@ describe('Weighted Planner Strategy', () => {
 
             const vehicle = { ...mockVehicles[1], capacity: 40 };
 
-            const perfectScore = calculateWeightedScore(
-                perfectCapacityZone,
-                vehicle,
-            );
-            const wastedScore = calculateWeightedScore(
-                wastedCapacityZone,
-                vehicle,
-            );
+            const perfectScore = calculateWeightedScore(perfectCapacityZone, vehicle);
+            const wastedScore = calculateWeightedScore(wastedCapacityZone, vehicle);
 
             // Perfect capacity utilization should get better score
             expect(perfectScore).toBeLessThan(wastedScore);

@@ -1,8 +1,4 @@
-import {
-    ApiBodyOptions,
-    ApiOperationOptions,
-    ApiResponseOptions,
-} from '@nestjs/swagger';
+import { ApiBodyOptions, ApiOperationOptions, ApiResponseOptions } from '@nestjs/swagger';
 
 export const EvacuationSwaggerConfig = {
     generateEvacuationPlan: {
@@ -119,8 +115,7 @@ export const EvacuationSwaggerConfig = {
         responses: {
             success: {
                 status: 200,
-                description:
-                    'All evacuation plans and cache cleared successfully',
+                description: 'All evacuation plans and cache cleared successfully',
             } as ApiResponseOptions,
         },
     },
@@ -128,8 +123,7 @@ export const EvacuationSwaggerConfig = {
     getStats: {
         operation: {
             summary: 'Get system statistics',
-            description:
-                'Retrieve daily statistics, strategy usage, and cache information',
+            description: 'Retrieve daily statistics, strategy usage, and cache information',
         } as ApiOperationOptions,
 
         responses: {

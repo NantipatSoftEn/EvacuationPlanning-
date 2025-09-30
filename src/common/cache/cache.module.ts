@@ -6,17 +6,7 @@ import { VehicleStatusService } from '@common/services/vehicle-status.service';
 
 @Global()
 @Module({
-    providers: [
-        RedisService,
-        CacheInterceptor,
-        RateLimitGuard,
-        VehicleStatusService,
-    ],
-    exports: [
-        RedisService,
-        CacheInterceptor,
-        RateLimitGuard,
-        VehicleStatusService,
-    ],
+    providers: [RedisService, CacheInterceptor, RateLimitGuard, VehicleStatusService],
+    exports: [RedisService, CacheInterceptor, RateLimitGuard, VehicleStatusService],
 })
 export class CacheModule {}

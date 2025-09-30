@@ -49,26 +49,17 @@ export class ConfigService {
             healthCheck: {
                 enabled: process.env.HEALTH_CHECK_ENABLED !== 'false',
                 endpoint: process.env.HEALTH_CHECK_ENDPOINT || '/health',
-                timeout: parseInt(
-                    process.env.HEALTH_CHECK_TIMEOUT || '5000',
-                    10,
-                ),
+                timeout: parseInt(process.env.HEALTH_CHECK_TIMEOUT || '5000', 10),
             },
 
             performance: {
                 maxRequestSize: process.env.MAX_REQUEST_SIZE || '10mb',
-                requestTimeout: parseInt(
-                    process.env.REQUEST_TIMEOUT || '30000',
-                    10,
-                ),
+                requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || '30000', 10),
             },
 
             cache: {
                 ttl: parseInt(process.env.CACHE_TTL || '300', 10),
-                distanceCacheTtl: parseInt(
-                    process.env.DISTANCE_CACHE_TTL || '86400',
-                    10,
-                ),
+                distanceCacheTtl: parseInt(process.env.DISTANCE_CACHE_TTL || '86400', 10),
             },
         };
     }

@@ -10,10 +10,7 @@ import { join } from 'path';
 declare const module: any;
 
 // Load environment variables based on NODE_ENV
-const envFile =
-    process.env.NODE_ENV === 'production'
-        ? '.env.production'
-        : '.env.development';
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
 dotenv.config({ path: join(process.cwd(), envFile) });
 
 async function bootstrap() {
@@ -34,9 +31,7 @@ async function bootstrap() {
     // Swagger documentation setup
     const config = new DocumentBuilder()
         .setTitle('Evacuation Planning API')
-        .setDescription(
-            'The evacuation planning API with multiple optimization strategies',
-        )
+        .setDescription('The evacuation planning API with multiple optimization strategies')
         .setVersion('1.0')
         .addTag('evacuation')
         .addTag('vehicles')

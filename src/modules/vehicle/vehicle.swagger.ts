@@ -1,8 +1,4 @@
-import {
-    ApiBodyOptions,
-    ApiOperationOptions,
-    ApiResponseOptions,
-} from '@nestjs/swagger';
+import { ApiBodyOptions, ApiOperationOptions, ApiResponseOptions } from '@nestjs/swagger';
 
 export const VehicleSwaggerConfig = {
     addVehicles: {
@@ -21,13 +17,11 @@ export const VehicleSwaggerConfig = {
         } as ApiOperationOptions,
 
         body: {
-            description:
-                'Single vehicle or array of vehicles for bulk creation',
+            description: 'Single vehicle or array of vehicles for bulk creation',
             examples: {
                 single: {
                     summary: 'Single vehicle creation',
-                    description:
-                        'Create a single vehicle with all required parameters',
+                    description: 'Create a single vehicle with all required parameters',
                     value: {
                         vehicleId: 'v-001',
                         capacity: 50,
@@ -41,8 +35,7 @@ export const VehicleSwaggerConfig = {
                 },
                 'bulk-create-2': {
                     summary: 'Bulk create - 2 vehicles',
-                    description:
-                        'Create multiple vehicles with different types and capacities',
+                    description: 'Create multiple vehicles with different types and capacities',
                     value: [
                         {
                             vehicleId: 'v-001',
@@ -68,8 +61,7 @@ export const VehicleSwaggerConfig = {
                 },
                 'bulk-create-5': {
                     summary: 'Bulk create - 5 vehicles (fleet)',
-                    description:
-                        'Create a complete vehicle fleet with mixed types',
+                    description: 'Create a complete vehicle fleet with mixed types',
                     value: [
                         {
                             vehicleId: 'bus-001',
@@ -201,8 +193,7 @@ export const VehicleSwaggerConfig = {
                             properties: {
                                 vehicles: {
                                     type: 'array',
-                                    description:
-                                        'Array of all registered vehicles',
+                                    description: 'Array of all registered vehicles',
                                 },
                                 count: {
                                     type: 'number',

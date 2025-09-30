@@ -40,9 +40,7 @@ export class VehicleStatusService {
 
             this.logger.debug(`Updated status for vehicle ${status.vehicleId}`);
         } catch (error) {
-            this.logger.error(
-                `Failed to update vehicle status: ${error.message}`,
-            );
+            this.logger.error(`Failed to update vehicle status: ${error.message}`);
             throw error;
         }
     }
@@ -59,8 +57,7 @@ export class VehicleStatusService {
 
     async getAllVehicleStatuses(): Promise<VehicleStatus[]> {
         try {
-            const availableVehicleIds =
-                await this.redisService.getAvailableVehicles();
+            const availableVehicleIds = await this.redisService.getAvailableVehicles();
             const statuses: VehicleStatus[] = [];
 
             for (const vehicleId of availableVehicleIds) {
@@ -72,9 +69,7 @@ export class VehicleStatusService {
 
             return statuses;
         } catch (error) {
-            this.logger.error(
-                `Failed to get all vehicle statuses: ${error.message}`,
-            );
+            this.logger.error(`Failed to get all vehicle statuses: ${error.message}`);
             return [];
         }
     }
@@ -98,20 +93,15 @@ export class VehicleStatusService {
                 currentTask: {
                     zoneId: reason,
                     estimatedCompletion:
-                        estimatedAvailableAt ||
-                        new Date(Date.now() + 30 * 60 * 1000), // Default 30 min
+                        estimatedAvailableAt || new Date(Date.now() + 30 * 60 * 1000), // Default 30 min
                     status: 'en_route',
                 },
             };
 
             await this.updateVehicleStatus(updatedStatus);
-            this.logger.log(
-                `Vehicle ${vehicleId} marked unavailable: ${reason}`,
-            );
+            this.logger.log(`Vehicle ${vehicleId} marked unavailable: ${reason}`);
         } catch (error) {
-            this.logger.error(
-                `Failed to mark vehicle unavailable: ${error.message}`,
-            );
+            this.logger.error(`Failed to mark vehicle unavailable: ${error.message}`);
             throw error;
         }
     }
@@ -138,9 +128,7 @@ export class VehicleStatusService {
             await this.updateVehicleStatus(updatedStatus);
             this.logger.log(`Vehicle ${vehicleId} marked available`);
         } catch (error) {
-            this.logger.error(
-                `Failed to mark vehicle available: ${error.message}`,
-            );
+            this.logger.error(`Failed to mark vehicle available: ${error.message}`);
             throw error;
         }
     }
@@ -148,13 +136,9 @@ export class VehicleStatusService {
     async getVehiclesByZone(zoneId: string): Promise<VehicleStatus[]> {
         try {
             const allStatuses = await this.getAllVehicleStatuses();
-            return allStatuses.filter(
-                (status) => status.currentTask?.zoneId === zoneId,
-            );
+            return allStatuses.filter((status) => status.currentTask?.zoneId === zoneId);
         } catch (error) {
-            this.logger.error(
-                `Failed to get vehicles by zone: ${error.message}`,
-            );
+            this.logger.error(`Failed to get vehicles by zone: ${error.message}`);
             return [];
         }
     }
@@ -169,9 +153,7 @@ export class VehicleStatusService {
                     !status.available,
             );
         } catch (error) {
-            this.logger.error(
-                `Failed to get vehicles needing maintenance: ${error.message}`,
-            );
+            this.logger.error(`Failed to get vehicles needing maintenance: ${error.message}`);
             return [];
         }
     }

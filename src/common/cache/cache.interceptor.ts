@@ -1,10 +1,4 @@
-import {
-    Injectable,
-    NestInterceptor,
-    ExecutionContext,
-    CallHandler,
-    Logger,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RedisService } from './redis.service';
@@ -32,10 +26,7 @@ export class CacheInterceptor implements NestInterceptor {
         this.isRedisEnabled = process.env.REDIS_ENABLED === 'true';
     }
 
-    async intercept(
-        context: ExecutionContext,
-        next: CallHandler,
-    ): Promise<Observable<any>> {
+    async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
         const cacheConfig = this.reflector.get<CacheConfigMetadata>(
             'cacheConfig',
             context.getHandler(),
@@ -46,11 +37,7 @@ export class CacheInterceptor implements NestInterceptor {
         }
 
         const request = context.switchToHttp().getRequest();
-        const cacheKey = this.generateCacheKey(
-            context,
-            request,
-            cacheConfig.keyGenerator,
-        );
+        const cacheKey = this.generateCacheKey(context, request, cacheConfig.keyGenerator);
 
         try {
             // Check if we have cached data
@@ -66,11 +53,7 @@ export class CacheInterceptor implements NestInterceptor {
             return next.handle().pipe(
                 tap(async (data) => {
                     if (data) {
-                        await this.redisService.set(
-                            cacheKey,
-                            data,
-                            cacheConfig.ttl,
-                        );
+                        await this.redisService.set(cacheKey, data, cacheConfig.ttl);
                         this.logger.debug(`Data cached for key: ${cacheKey}`);
                     }
                 }),

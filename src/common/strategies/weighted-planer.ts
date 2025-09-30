@@ -5,10 +5,7 @@ import { estimateTravelTime } from '@common/utils/estimate-travel-time';
 import { haversineDistance } from '@common/utils/haversine-distance';
 
 // คำนวณคะแนนถ่วงน้ำหนักสำหรับการจับคู่ zone-vehicle
-function calculateWeightedScore(
-    zone: ProcessedEvacuationZone,
-    vehicle: ProcessedVehicle,
-): number {
+function calculateWeightedScore(zone: ProcessedEvacuationZone, vehicle: ProcessedVehicle): number {
     if (!zone.locationCoordinates || !vehicle.locationCoordinates) {
         return Infinity; // ไม่สามารถคำนวณได้ถ้าไม่มี coordinates
     }
@@ -41,8 +38,7 @@ function calculateWeightedScore(
     const urgencyScore = urgencyWeight * normalizedUrgency;
 
     // 2. Capacity Score (ยิ่งใช้ capacity เต็มที่ คะแนนยิ่งต่ำ)
-    const capacityUtilization =
-        Math.min(remainingPeople, vehicleCapacity) / vehicleCapacity;
+    const capacityUtilization = Math.min(remainingPeople, vehicleCapacity) / vehicleCapacity;
     const capacityScore = capacityWeight * (1 - capacityUtilization);
 
     // 3. Distance Score (ยิ่งใกล้ คะแนนยิ่งต่ำ)
@@ -100,9 +96,7 @@ function generateWeightedPlan(
     const vehiclesWorkingCopy = vehicles.map((vehicle) => ({ ...vehicle }));
 
     // เรียง zones ตาม urgency level จากมาก → น้อย
-    zonesWorkingCopy.sort(
-        (a, b) => (b.urgencyLevel || 0) - (a.urgencyLevel || 0),
-    );
+    zonesWorkingCopy.sort((a, b) => (b.urgencyLevel || 0) - (a.urgencyLevel || 0));
 
     for (const zone of zonesWorkingCopy) {
         const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated;
@@ -136,10 +130,7 @@ function generateWeightedPlan(
                 vehicle.locationCoordinates.latitude,
                 vehicle.locationCoordinates.longitude,
             );
-            const etaMinutes = estimateTravelTime(
-                distance,
-                vehicle.speed || 50,
-            );
+            const etaMinutes = estimateTravelTime(distance, vehicle.speed || 50);
 
             // คำนวณคะแนนถ่วงน้ำหนัก
             const score = calculateWeightedScore(zone, vehicle);
@@ -148,8 +139,7 @@ function generateWeightedPlan(
             if (
                 !bestAssignment ||
                 score < bestAssignment.score ||
-                (score === bestAssignment.score &&
-                    canEvacuate > bestAssignment.evacuated)
+                (score === bestAssignment.score && canEvacuate > bestAssignment.evacuated)
             ) {
                 bestAssignment = {
                     vehicle,
@@ -164,9 +154,7 @@ function generateWeightedPlan(
         if (bestAssignment) {
             plan.push({
                 zoneId: zone.zoneId || zone.id,
-                vehicleId:
-                    bestAssignment.vehicle.vehicleId ||
-                    bestAssignment.vehicle.id,
+                vehicleId: bestAssignment.vehicle.vehicleId || bestAssignment.vehicle.id,
                 etaMinutes: bestAssignment.etaMinutes,
                 evacuated: bestAssignment.evacuated,
             });
@@ -181,8 +169,4 @@ function generateWeightedPlan(
 }
 
 // ===== Export Functions =====
-export {
-    generateWeightedPlan,
-    chooseBestVehicleWeighted,
-    calculateWeightedScore,
-};
+export { generateWeightedPlan, chooseBestVehicleWeighted, calculateWeightedScore };

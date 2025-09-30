@@ -126,15 +126,10 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             // Should use all 3 vehicles for the same zone
             expect(plan.length).toBe(3);
-            expect(plan.every((assignment) => assignment.zoneId === 'Z1')).toBe(
-                true,
-            );
+            expect(plan.every((assignment) => assignment.zoneId === 'Z1')).toBe(true);
 
             // Check total evacuation
-            const totalEvacuated = plan.reduce(
-                (sum, assignment) => sum + assignment.evacuated,
-                0,
-            );
+            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0);
             expect(totalEvacuated).toBe(70);
 
             // Verify vehicle usage (greedy picks best available each time)
@@ -188,10 +183,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             // Check that both vehicles are eventually used
             const vehicleIds = plan.map((assignment) => assignment.vehicleId);
-            const totalEvacuated = plan.reduce(
-                (sum, assignment) => sum + assignment.evacuated,
-                0,
-            );
+            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0);
             expect(totalEvacuated).toBe(40); // All people evacuated eventually
         });
     });
@@ -231,12 +223,8 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
             const plan = generateGreedyPlan(zones, vehicles);
 
             // Z1 should be handled completely before Z2 gets any vehicle
-            const z1Assignments = plan.filter(
-                (assignment) => assignment.zoneId === 'Z1',
-            );
-            const z2Assignments = plan.filter(
-                (assignment) => assignment.zoneId === 'Z2',
-            );
+            const z1Assignments = plan.filter((assignment) => assignment.zoneId === 'Z1');
+            const z2Assignments = plan.filter((assignment) => assignment.zoneId === 'Z2');
 
             expect(z1Assignments.length).toBeGreaterThan(0);
             // Z1 should be evacuated first (30 people with 40 capacity = 1 trip)
@@ -281,10 +269,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
             // Should use both vehicles
             expect(plan.length).toBe(2);
 
-            const totalEvacuated = plan.reduce(
-                (sum, assignment) => sum + assignment.evacuated,
-                0,
-            );
+            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0);
             expect(totalEvacuated).toBe(70); // 40 + 30
             expect(totalEvacuated).toBeLessThan(100); // Not all people evacuated
 
