@@ -1,16 +1,16 @@
-import { IsOptional, IsNumber, IsBoolean, IsString, IsIn, Min } from 'class-validator';
+import { IsOptional, IsNumber, IsBoolean, IsString, IsIn, Min } from 'class-validator'
 
 export class VehicleDto {
-    id?: string;
-    vehicleId?: string;
-    capacity: number;
-    type: string;
+    id?: string
+    vehicleId?: string
+    capacity: number
+    type: string
     locationCoordinates?: {
-        latitude: number;
-        longitude: number;
-    };
-    speed?: number;
-    location?: string;
+        latitude: number
+        longitude: number
+    }
+    speed?: number
+    location?: string
 }
 
 export class EvacuationPlanRequestDto {
@@ -19,101 +19,101 @@ export class EvacuationPlanRequestDto {
     @IsIn(['greedy', 'weighted'], {
         message: 'Strategy must be either "greedy" or "weighted"',
     })
-    strategy?: 'greedy' | 'weighted'; // เลือกกลยุทธ์การวางแผน
+    strategy?: 'greedy' | 'weighted' // เลือกกลยุทธ์การวางแผน
 
     @IsOptional()
     @IsNumber()
     @Min(1)
-    maxDistanceKm?: number; // ตัดรถที่ไกลเกินไป
+    maxDistanceKm?: number // ตัดรถที่ไกลเกินไป
 
     @IsOptional()
     @IsBoolean()
-    allowMultiVehicle?: boolean; // อนุญาตแบ่งหลายคันต่อหนึ่งโซน
+    allowMultiVehicle?: boolean // อนุญาตแบ่งหลายคันต่อหนึ่งโซน
 
     @IsOptional()
     @IsBoolean()
-    preferFewerTrips?: boolean; // เน้นคันใหญ่เพื่อลดรอบ
+    preferFewerTrips?: boolean // เน้นคันใหญ่เพื่อลดรอบ
 
     @IsOptional()
     @IsNumber()
     @Min(1)
-    speedFallbackKmh?: number; // ความเร็วสำรองหากรถคันไหนไม่ระบุ
+    speedFallbackKmh?: number // ความเร็วสำรองหากรถคันไหนไม่ระบุ
 }
 
 export class EvacuationPlanResponseDto {
     assignments: {
-        vehicleId: string;
-        vehicleType: string;
-        vehicleCapacity: number;
-        assignedZone: string;
-        zoneId: string;
+        vehicleId: string
+        vehicleType: string
+        vehicleCapacity: number
+        assignedZone: string
+        zoneId: string
         zoneCoordinates: {
-            latitude: number;
-            longitude: number;
-        };
-        urgencyLevel: number;
-        urgencyCategory: string;
-        priority: number;
-        peopleToEvacuate: number;
-        distanceKm: number;
-        travelTimeHours: number;
-        travelTimeMinutes: number;
-        travelTimeFormatted: string;
-        eta: string;
-        speedKmh: number;
-    }[];
+            latitude: number
+            longitude: number
+        }
+        urgencyLevel: number
+        urgencyCategory: string
+        priority: number
+        peopleToEvacuate: number
+        distanceKm: number
+        travelTimeHours: number
+        travelTimeMinutes: number
+        travelTimeFormatted: string
+        eta: string
+        speedKmh: number
+    }[]
     summary: {
-        totalVehiclesAssigned: number;
-        totalPeopleToEvacuate: number;
-        highPriorityZones: number;
-        averageDistance: number;
-        averageTravelTime: number;
-        zonesFullyCovered: number;
-        zonesPartiallyCovered: number;
-        totalDistanceKm: number;
-    };
+        totalVehiclesAssigned: number
+        totalPeopleToEvacuate: number
+        highPriorityZones: number
+        averageDistance: number
+        averageTravelTime: number
+        zonesFullyCovered: number
+        zonesPartiallyCovered: number
+        totalDistanceKm: number
+    }
     options: {
-        strategy: string;
-        maxDistanceKm: number;
-        allowMultiVehicle: boolean;
-        preferFewerTrips: boolean;
-        speedFallbackKmh: number;
-    };
+        strategy: string
+        maxDistanceKm: number
+        allowMultiVehicle: boolean
+        preferFewerTrips: boolean
+        speedFallbackKmh: number
+    }
 
     // Legacy format for backward compatibility
     plan?: {
-        vehicleId: string;
-        assignedZone: string;
-        priority: number;
-        capacity: number;
-        peopleToEvacuate: number;
+        vehicleId: string
+        assignedZone: string
+        priority: number
+        capacity: number
+        peopleToEvacuate: number
         zoneDetails?: {
-            zoneId: string;
+            zoneId: string
             coordinates?: {
-                latitude: number;
-                longitude: number;
-            };
-            urgencyLevel?: number;
-        };
-    }[];
+                latitude: number
+                longitude: number
+            }
+            urgencyLevel?: number
+        }
+    }[]
 }
 
 export class EvacuationStatusDto {
-    zoneId: string;
-    totalEvacuated: number;
-    remainingPeople: number;
-    lastVehicleUsed?: string;
+    zoneId: string
+    totalEvacuated: number
+    remainingPeople: number
+    lastVehicleUsed?: string
 }
 
 export class EvacuationUpdateDto {
     @IsOptional()
     @IsString()
-    id?: string; // Zone ID for direct lookup
+    id?: string // Zone ID for direct lookup
 
     @IsOptional()
     @IsString()
-    zoneLocation?: string; // Legacy field, optional for backward compatibility
+    zoneLocation?: string // Legacy field, optional for backward compatibility
 
     @IsString()
-    vehicleId: string;
+    vehicleId: string
 }

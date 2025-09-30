@@ -1,7 +1,7 @@
-import { generateGreedyPlan, chooseBestVehicleGreedy } from './greedy-planner';
-import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service';
-import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
-import { EvacuationAssignment } from '@common/types/EvacuationAssignment';
+import { generateGreedyPlan, chooseBestVehicleGreedy } from './greedy-planner'
+import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service'
+import { ProcessedVehicle } from '@modules/vehicle/vehicle.service'
+import { EvacuationAssignment } from '@common/types/EvacuationAssignment'
 
 describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
     describe('1. Urgency vs Distance', () => {
@@ -26,7 +26,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 3, // Lower urgency
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -37,16 +37,16 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 60,
                     type: 'van',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Greedy should choose Z1 first due to higher urgency despite distance
-            expect(plan[0].zoneId).toBe('Z1');
-            expect(plan[0].vehicleId).toBe('V1');
-            expect(plan[0].evacuated).toBe(20);
-        });
-    });
+            expect(plan[0].zoneId).toBe('Z1')
+            expect(plan[0].vehicleId).toBe('V1')
+            expect(plan[0].evacuated).toBe(20)
+        })
+    })
 
     describe('2. Capacity เกินจำนวนคน', () => {
         it('should use oversized vehicle to evacuate zone in single trip', () => {
@@ -59,7 +59,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 5,
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -70,17 +70,17 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 60,
                     type: 'bus',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Should complete evacuation in single assignment
-            expect(plan.length).toBe(1);
-            expect(plan[0].zoneId).toBe('Z1');
-            expect(plan[0].vehicleId).toBe('V1');
-            expect(plan[0].evacuated).toBe(10); // All people evacuated
-        });
-    });
+            expect(plan.length).toBe(1)
+            expect(plan[0].zoneId).toBe('Z1')
+            expect(plan[0].vehicleId).toBe('V1')
+            expect(plan[0].evacuated).toBe(10) // All people evacuated
+        })
+    })
 
     describe('3. ต้องใช้หลายคันมาช่วยกัน', () => {
         it('should assign multiple vehicles in order of capacity/efficiency', () => {
@@ -93,7 +93,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 5,
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -120,25 +120,25 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 40,
                     type: 'car',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Should use all 3 vehicles for the same zone
-            expect(plan.length).toBe(3);
-            expect(plan.every((assignment) => assignment.zoneId === 'Z1')).toBe(true);
+            expect(plan.length).toBe(3)
+            expect(plan.every((assignment) => assignment.zoneId === 'Z1')).toBe(true)
 
             // Check total evacuation
-            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0);
-            expect(totalEvacuated).toBe(70);
+            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0)
+            expect(totalEvacuated).toBe(70)
 
             // Verify vehicle usage (greedy picks best available each time)
-            const vehicleIds = plan.map((assignment) => assignment.vehicleId);
-            expect(vehicleIds).toContain('V1');
-            expect(vehicleIds).toContain('V2');
-            expect(vehicleIds).toContain('V3');
-        });
-    });
+            const vehicleIds = plan.map((assignment) => assignment.vehicleId)
+            expect(vehicleIds).toContain('V1')
+            expect(vehicleIds).toContain('V2')
+            expect(vehicleIds).toContain('V3')
+        })
+    })
 
     describe('4. รถใกล้แต่จุน้อย vs รถไกลแต่จุเยอะ', () => {
         it('should demonstrate greedy short-sighted behavior (close small vs far large)', () => {
@@ -151,7 +151,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 5,
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -173,20 +173,20 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 50,
                     type: 'bus',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Greedy will likely choose V1 first due to proximity (suboptimal)
             // This demonstrates the greedy algorithm's short-sighted nature
-            expect(plan.length).toBeGreaterThan(1); // Multiple trips needed
+            expect(plan.length).toBeGreaterThan(1) // Multiple trips needed
 
             // Check that both vehicles are eventually used
-            const vehicleIds = plan.map((assignment) => assignment.vehicleId);
-            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0);
-            expect(totalEvacuated).toBe(40); // All people evacuated eventually
-        });
-    });
+            const vehicleIds = plan.map((assignment) => assignment.vehicleId)
+            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0)
+            expect(totalEvacuated).toBe(40) // All people evacuated eventually
+        })
+    })
 
     describe('5. หลาย Zone แข่งรถกัน', () => {
         it('should prioritize zones strictly by urgency level', () => {
@@ -207,7 +207,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 4, // Lower urgency
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -218,19 +218,19 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 60,
                     type: 'bus',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Z1 should be handled completely before Z2 gets any vehicle
-            const z1Assignments = plan.filter((assignment) => assignment.zoneId === 'Z1');
-            const z2Assignments = plan.filter((assignment) => assignment.zoneId === 'Z2');
+            const z1Assignments = plan.filter((assignment) => assignment.zoneId === 'Z1')
+            const z2Assignments = plan.filter((assignment) => assignment.zoneId === 'Z2')
 
-            expect(z1Assignments.length).toBeGreaterThan(0);
+            expect(z1Assignments.length).toBeGreaterThan(0)
             // Z1 should be evacuated first (30 people with 40 capacity = 1 trip)
-            expect(z1Assignments[0].evacuated).toBe(30);
-        });
-    });
+            expect(z1Assignments[0].evacuated).toBe(30)
+        })
+    })
 
     describe('6. Zone ที่ไม่พอรถ (เกิน capacity รวม)', () => {
         it('should evacuate as many as possible when total capacity insufficient', () => {
@@ -243,7 +243,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 5,
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -262,23 +262,23 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 50,
                     type: 'van',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Should use both vehicles
-            expect(plan.length).toBe(2);
+            expect(plan.length).toBe(2)
 
-            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0);
-            expect(totalEvacuated).toBe(70); // 40 + 30
-            expect(totalEvacuated).toBeLessThan(100); // Not all people evacuated
+            const totalEvacuated = plan.reduce((sum, assignment) => sum + assignment.evacuated, 0)
+            expect(totalEvacuated).toBe(70) // 40 + 30
+            expect(totalEvacuated).toBeLessThan(100) // Not all people evacuated
 
             // Verify both vehicles are used
-            const vehicleIds = plan.map((assignment) => assignment.vehicleId);
-            expect(vehicleIds).toContain('V1');
-            expect(vehicleIds).toContain('V2');
-        });
-    });
+            const vehicleIds = plan.map((assignment) => assignment.vehicleId)
+            expect(vehicleIds).toContain('V1')
+            expect(vehicleIds).toContain('V2')
+        })
+    })
 
     describe('7. No available vehicle', () => {
         it('should return empty plan when no vehicles available', () => {
@@ -291,16 +291,16 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 5,
                     evacuated: 0,
                 },
-            ];
+            ]
 
-            const vehicles: ProcessedVehicle[] = []; // No vehicles available
+            const vehicles: ProcessedVehicle[] = [] // No vehicles available
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Should return empty plan
-            expect(plan).toEqual([]);
-            expect(plan.length).toBe(0);
-        });
+            expect(plan).toEqual([])
+            expect(plan.length).toBe(0)
+        })
 
         it('should return empty plan when vehicles have no capacity', () => {
             const zones: ProcessedEvacuationZone[] = [
@@ -312,7 +312,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 5,
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -323,14 +323,14 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 60,
                     type: 'bus',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Should return empty plan
-            expect(plan).toEqual([]);
-        });
-    });
+            expect(plan).toEqual([])
+        })
+    })
 
     describe('8. Simultaneous zones with same urgency', () => {
         it('should have consistent tiebreaker for zones with same urgency', () => {
@@ -351,7 +351,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 4, // Same urgency
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -362,24 +362,24 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 60,
                     type: 'bus',
                 },
-            ];
+            ]
 
             // Run multiple times to ensure consistent behavior
-            const plan1 = generateGreedyPlan(zones, vehicles);
-            const plan2 = generateGreedyPlan(zones, vehicles);
-            const plan3 = generateGreedyPlan(zones, vehicles);
+            const plan1 = generateGreedyPlan(zones, vehicles)
+            const plan2 = generateGreedyPlan(zones, vehicles)
+            const plan3 = generateGreedyPlan(zones, vehicles)
 
             // Should be consistent across runs
-            expect(plan1).toEqual(plan2);
-            expect(plan2).toEqual(plan3);
+            expect(plan1).toEqual(plan2)
+            expect(plan2).toEqual(plan3)
 
             // Should handle both zones
-            expect(plan1.length).toBe(2);
+            expect(plan1.length).toBe(2)
 
             // First assignment should be consistent (based on sort order in array)
-            expect(plan1[0].zoneId).toBe(plan2[0].zoneId);
-            expect(plan1[0].zoneId).toBe(plan3[0].zoneId);
-        });
+            expect(plan1[0].zoneId).toBe(plan2[0].zoneId)
+            expect(plan1[0].zoneId).toBe(plan3[0].zoneId)
+        })
 
         it('should use distance as tiebreaker when urgency is equal', () => {
             const zones: ProcessedEvacuationZone[] = [
@@ -402,7 +402,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     urgencyLevel: 4,
                     evacuated: 0,
                 },
-            ];
+            ]
 
             const vehicles: ProcessedVehicle[] = [
                 {
@@ -413,17 +413,17 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     speed: 60,
                     type: 'bus',
                 },
-            ];
+            ]
 
-            const plan = generateGreedyPlan(zones, vehicles);
+            const plan = generateGreedyPlan(zones, vehicles)
 
             // Since urgency is the same, the algorithm should process in the order
             // they appear in the array (after sorting by urgency)
-            expect(plan.length).toBe(2);
+            expect(plan.length).toBe(2)
             // Both zones should be handled
-            const zoneIds = plan.map((assignment) => assignment.zoneId);
-            expect(zoneIds).toContain('Z1');
-            expect(zoneIds).toContain('Z2');
-        });
-    });
-});
+            const zoneIds = plan.map((assignment) => assignment.zoneId)
+            expect(zoneIds).toContain('Z1')
+            expect(zoneIds).toContain('Z2')
+        })
+    })
+})

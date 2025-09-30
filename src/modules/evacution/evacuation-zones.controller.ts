@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
-import { EvacuationZoneDto } from './evacuation-zone.dto';
-import { EvacuationService } from './evacuation.service';
+import { Body, Controller, Get, Post } from '@nestjs/common'
+import { ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger'
+import { EvacuationZoneDto } from './evacuation-zone.dto'
+import { EvacuationService } from './evacuation.service'
 
 @ApiTags('evacuation-zones')
 @Controller('evacuation-zones')
@@ -60,8 +60,8 @@ export class EvacuationZonesController {
     })
     @ApiResponse({ status: 400, description: 'Invalid input data' })
     addEvacuationZones(@Body() zones: EvacuationZoneDto | EvacuationZoneDto[]) {
-        const zonesArray = Array.isArray(zones) ? zones : [zones];
-        const results = this.evacuationService.addEvacuationZones(zonesArray);
+        const zonesArray = Array.isArray(zones) ? zones : [zones]
+        const results = this.evacuationService.addEvacuationZones(zonesArray)
 
         return {
             message: `${results.length} evacuation zone(s) added successfully`,
@@ -69,7 +69,7 @@ export class EvacuationZonesController {
                 zones: results,
                 count: results.length,
             },
-        };
+        }
     }
 
     @Get()
@@ -79,13 +79,13 @@ export class EvacuationZonesController {
         description: 'Retrieved all evacuation zones successfully',
     })
     getAllEvacuationZones() {
-        const zones = this.evacuationService.getEvacuationZones();
+        const zones = this.evacuationService.getEvacuationZones()
         return {
             message: 'Retrieved all evacuation zones successfully',
             data: {
                 zones,
                 count: zones.length,
             },
-        };
+        }
     }
 }

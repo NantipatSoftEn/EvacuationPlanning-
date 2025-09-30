@@ -1,4 +1,4 @@
-import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service';
+import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service'
 
 export const mockEvacuatedZones: ProcessedEvacuationZone[] = [
     // {
@@ -25,4 +25,4 @@ export const mockEvacuatedZones: ProcessedEvacuationZone[] = [
     //     urgencyLevel: 4,
     //     evacuated: 0,
     // },
-];
+]

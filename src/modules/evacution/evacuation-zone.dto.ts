@@ -7,46 +7,46 @@ import {
     Max,
     IsLatitude,
     IsLongitude,
-} from 'class-validator';
+} from 'class-validator'
 
 export class LocationCoordinatesDto {
     @IsLatitude()
     @IsNotEmpty()
-    latitude: number;
+    latitude: number
 
     @IsLongitude()
     @IsNotEmpty()
-    longitude: number;
+    longitude: number
 }
 
 export class EvacuationZoneDto {
     @IsOptional()
     @IsString()
     @IsNotEmpty()
-    zoneId?: string; // Will be auto-generated if not provided
+    zoneId?: string // Will be auto-generated if not provided
 
     @IsNotEmpty()
-    locationCoordinates: LocationCoordinatesDto;
+    locationCoordinates: LocationCoordinatesDto
 
     @IsNumber()
     @Min(1)
-    numberOfPeople: number;
+    numberOfPeople: number
 
     @IsNumber()
     @Min(1)
     @Max(5)
-    urgencyLevel: number; // 1 = low urgency, 5 = high urgency
+    urgencyLevel: number // 1 = low urgency, 5 = high urgency
 
     // Legacy fields for backward compatibility
     @IsOptional()
     @IsString()
-    location?: string;
+    location?: string
 
     @IsOptional()
     @IsNumber()
-    people?: number;
+    people?: number
 
     @IsOptional()
     @IsString()
-    urgency?: string;
+    urgency?: string
 }

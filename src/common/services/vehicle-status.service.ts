@@ -1,28 +1,28 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '@common/cache/redis.service';
+import { Injectable, Logger } from '@nestjs/common'
+import { RedisService } from '@common/cache/redis.service'
 
 export interface VehicleStatus {
-    vehicleId: string;
-    available: boolean;
+    vehicleId: string
+    available: boolean
     currentLocation?: {
-        latitude: number;
-        longitude: number;
-    };
+        latitude: number
+        longitude: number
+    }
     currentTask?: {
-        zoneId: string;
-        estimatedCompletion: Date;
-        status: 'en_route' | 'evacuating' | 'returning';
-    };
-    lastUpdated: Date;
-    batteryLevel?: number;
-    fuelLevel?: number;
-    capacity: number;
-    currentLoad: number;
+        zoneId: string
+        estimatedCompletion: Date
+        status: 'en_route' | 'evacuating' | 'returning'
+    }
+    lastUpdated: Date
+    batteryLevel?: number
+    fuelLevel?: number
+    capacity: number
+    currentLoad: number
 }
 
 @Injectable()
 export class VehicleStatusService {
-    private readonly logger = new Logger(VehicleStatusService.name);
+    private readonly logger = new Logger(VehicleStatusService.name)
 
     constructor(private readonly redisService: RedisService) {}
 
@@ -32,45 +32,45 @@ export class VehicleStatusService {
                 available: status.available,
                 currentLocation: status.currentLocation,
                 lastUpdated: status.lastUpdated,
-            });
+            })
 
             // Store detailed status separately
-            const detailedKey = `vehicle_detail:${status.vehicleId}`;
-            await this.redisService.set(detailedKey, status, 24 * 60 * 60); // 24 hours TTL
+            const detailedKey = `vehicle_detail:${status.vehicleId}`
+            await this.redisService.set(detailedKey, status, 24 * 60 * 60) // 24 hours TTL
 
-            this.logger.debug(`Updated status for vehicle ${status.vehicleId}`);
+            this.logger.debug(`Updated status for vehicle ${status.vehicleId}`)
         } catch (error) {
-            this.logger.error(`Failed to update vehicle status: ${error.message}`);
-            throw error;
+            this.logger.error(`Failed to update vehicle status: ${error.message}`)
+            throw error
         }
     }
 
     async getVehicleStatus(vehicleId: string): Promise<VehicleStatus | null> {
         try {
-            const detailedKey = `vehicle_detail:${vehicleId}`;
-            return await this.redisService.get<VehicleStatus>(detailedKey);
+            const detailedKey = `vehicle_detail:${vehicleId}`
+            return await this.redisService.get<VehicleStatus>(detailedKey)
         } catch (error) {
-            this.logger.error(`Failed to get vehicle status: ${error.message}`);
-            return null;
+            this.logger.error(`Failed to get vehicle status: ${error.message}`)
+            return null
         }
     }
 
     async getAllVehicleStatuses(): Promise<VehicleStatus[]> {
         try {
-            const availableVehicleIds = await this.redisService.getAvailableVehicles();
-            const statuses: VehicleStatus[] = [];
+            const availableVehicleIds = await this.redisService.getAvailableVehicles()
+            const statuses: VehicleStatus[] = []
 
             for (const vehicleId of availableVehicleIds) {
-                const status = await this.getVehicleStatus(vehicleId);
+                const status = await this.getVehicleStatus(vehicleId)
                 if (status) {
-                    statuses.push(status);
+                    statuses.push(status)
                 }
             }
 
-            return statuses;
+            return statuses
         } catch (error) {
-            this.logger.error(`Failed to get all vehicle statuses: ${error.message}`);
-            return [];
+            this.logger.error(`Failed to get all vehicle statuses: ${error.message}`)
+            return []
         }
     }
 
@@ -80,10 +80,10 @@ export class VehicleStatusService {
         estimatedAvailableAt?: Date,
     ): Promise<void> {
         try {
-            const currentStatus = await this.getVehicleStatus(vehicleId);
+            const currentStatus = await this.getVehicleStatus(vehicleId)
             if (!currentStatus) {
-                this.logger.warn(`Vehicle ${vehicleId} not found`);
-                return;
+                this.logger.warn(`Vehicle ${vehicleId} not found`)
+                return
             }
 
             const updatedStatus: VehicleStatus = {
@@ -96,13 +96,13 @@ export class VehicleStatusService {
                         estimatedAvailableAt || new Date(Date.now() + 30 * 60 * 1000), // Default 30 min
                     status: 'en_route',
                 },
-            };
+            }
 
-            await this.updateVehicleStatus(updatedStatus);
-            this.logger.log(`Vehicle ${vehicleId} marked unavailable: ${reason}`);
+            await this.updateVehicleStatus(updatedStatus)
+            this.logger.log(`Vehicle ${vehicleId} marked unavailable: ${reason}`)
         } catch (error) {
-            this.logger.error(`Failed to mark vehicle unavailable: ${error.message}`);
-            throw error;
+            this.logger.error(`Failed to mark vehicle unavailable: ${error.message}`)
+            throw error
         }
     }
 
@@ -111,10 +111,10 @@ export class VehicleStatusService {
         location?: { latitude: number; longitude: number },
     ): Promise<void> {
         try {
-            const currentStatus = await this.getVehicleStatus(vehicleId);
+            const currentStatus = await this.getVehicleStatus(vehicleId)
             if (!currentStatus) {
-                this.logger.warn(`Vehicle ${vehicleId} not found`);
-                return;
+                this.logger.warn(`Vehicle ${vehicleId} not found`)
+                return
             }
 
             const updatedStatus: VehicleStatus = {
@@ -123,38 +123,38 @@ export class VehicleStatusService {
                 currentLocation: location || currentStatus.currentLocation,
                 currentTask: undefined,
                 lastUpdated: new Date(),
-            };
+            }
 
-            await this.updateVehicleStatus(updatedStatus);
-            this.logger.log(`Vehicle ${vehicleId} marked available`);
+            await this.updateVehicleStatus(updatedStatus)
+            this.logger.log(`Vehicle ${vehicleId} marked available`)
         } catch (error) {
-            this.logger.error(`Failed to mark vehicle available: ${error.message}`);
-            throw error;
+            this.logger.error(`Failed to mark vehicle available: ${error.message}`)
+            throw error
         }
     }
 
     async getVehiclesByZone(zoneId: string): Promise<VehicleStatus[]> {
         try {
-            const allStatuses = await this.getAllVehicleStatuses();
-            return allStatuses.filter((status) => status.currentTask?.zoneId === zoneId);
+            const allStatuses = await this.getAllVehicleStatuses()
+            return allStatuses.filter((status) => status.currentTask?.zoneId === zoneId)
         } catch (error) {
-            this.logger.error(`Failed to get vehicles by zone: ${error.message}`);
-            return [];
+            this.logger.error(`Failed to get vehicles by zone: ${error.message}`)
+            return []
         }
     }
 
     async getVehiclesNeedingMaintenance(): Promise<VehicleStatus[]> {
         try {
-            const allStatuses = await this.getAllVehicleStatuses();
+            const allStatuses = await this.getAllVehicleStatuses()
             return allStatuses.filter(
                 (status) =>
                     (status.batteryLevel && status.batteryLevel < 20) ||
                     (status.fuelLevel && status.fuelLevel < 15) ||
                     !status.available,
-            );
+            )
         } catch (error) {
-            this.logger.error(`Failed to get vehicles needing maintenance: ${error.message}`);
-            return [];
+            this.logger.error(`Failed to get vehicles needing maintenance: ${error.message}`)
+            return []
         }
     }
 }

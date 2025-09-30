@@ -9,19 +9,19 @@ import {
     UseInterceptors,
     NotFoundException,
     BadRequestException,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+} from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import {
     EvacuationPlanRequestDto,
     EvacuationPlanResponseDto,
     EvacuationStatusDto,
     EvacuationUpdateDto,
-} from './evacuation-plan.dto';
-import { EvacuationService } from './evacuation.service';
-import { RateLimit, RateLimitGuard } from '@common/cache/rate-limit.guard';
-import { CacheConfig, CacheInterceptor } from '@common/cache/cache.interceptor';
-import { RedisService } from '@common/cache/redis.service';
-import { EvacuationSwaggerConfig } from './evacuation.swagger';
+} from './evacuation-plan.dto'
+import { EvacuationService } from './evacuation.service'
+import { RateLimit, RateLimitGuard } from '@common/cache/rate-limit.guard'
+import { CacheConfig, CacheInterceptor } from '@common/cache/cache.interceptor'
+import { RedisService } from '@common/cache/redis.service'
+import { EvacuationSwaggerConfig } from './evacuation.swagger'
 
 @ApiTags('evacuations')
 @Controller('/evacuations')
@@ -40,7 +40,7 @@ export class EvacuationController {
     @ApiResponse(EvacuationSwaggerConfig.generateEvacuationPlan.responses.badRequest)
     @ApiResponse(EvacuationSwaggerConfig.generateEvacuationPlan.responses.rateLimit)
     async generateEvacuationPlan(@Body() request: EvacuationPlanRequestDto) {
-        const startTime = Date.now();
+        const startTime = Date.now()
 
         const options = {
             strategy: request.strategy || 'greedy', // Default to greedy if not specified
@@ -48,16 +48,16 @@ export class EvacuationController {
             allowMultiVehicle: request.allowMultiVehicle !== false,
             preferFewerTrips: request.preferFewerTrips !== false,
             speedFallbackKmh: request.speedFallbackKmh || 40,
-        };
+        }
 
         // Get vehicles from the service (you might want to get them from database or other source)
-        const vehicles = this.evacuationService.getAvailableVehicles();
-        const result = await this.evacuationService.generateEvacuationPlan(vehicles, options);
+        const vehicles = this.evacuationService.getAvailableVehicles()
+        const result = await this.evacuationService.generateEvacuationPlan(vehicles, options)
 
         // Track response time
-        const responseTime = Date.now() - startTime;
+        const responseTime = Date.now() - startTime
         try {
-            await this.redisService.trackResponseTime('evacuation_plan', responseTime);
+            await this.redisService.trackResponseTime('evacuation_plan', responseTime)
         } catch (error) {
             // Analytics error doesn't affect response
         }
@@ -68,7 +68,7 @@ export class EvacuationController {
             VehicleID: assignment.vehicleId,
             ETA: assignment.travelTimeFormatted,
             NumberOfPeople: assignment.peopleToEvacuate,
-        }));
+        }))
 
         return {
             message: `Evacuation plan generated successfully using ${options.strategy} strategy`,
@@ -80,18 +80,18 @@ export class EvacuationController {
                 fromCache: result.fromCache || false,
                 responseTimeMs: responseTime,
             },
-        };
+        }
     }
 
     @Get('status')
     @ApiOperation(EvacuationSwaggerConfig.getEvacuationStatus.operation)
     @ApiResponse(EvacuationSwaggerConfig.getEvacuationStatus.responses.success)
     getEvacuationStatus() {
-        const status = this.evacuationService.getEvacuationStatus();
+        const status = this.evacuationService.getEvacuationStatus()
         return {
             message: 'Retrieved evacuation status successfully',
             data: status,
-        };
+        }
     }
 
     @Put('update')
@@ -101,35 +101,35 @@ export class EvacuationController {
     @ApiResponse(EvacuationSwaggerConfig.updateEvacuationStatus.responses.badRequest)
     @ApiResponse(EvacuationSwaggerConfig.updateEvacuationStatus.responses.notFound)
     updateEvacuationStatus(@Body() update: EvacuationUpdateDto) {
-        console.log('update', update);
+        console.log('update', update)
 
         // Validate that either id or zoneLocation is provided
-        const idOrLocation = update.id || update.zoneLocation;
+        const idOrLocation = update.id || update.zoneLocation
         if (!idOrLocation) {
             throw new BadRequestException({
                 message: 'Either id or zoneLocation must be provided',
                 statusCode: 400,
-            });
+            })
         }
 
         try {
             const result = this.evacuationService.updateEvacuationStatus(
                 idOrLocation,
                 update.vehicleId,
-            );
+            )
             return {
                 message: 'Evacuation status updated successfully',
                 data: result,
-            };
+            }
         } catch (error) {
             if (error.message.includes('not found')) {
                 throw new NotFoundException({
                     message: 'Zone not found',
                     error: error.message,
                     statusCode: 404,
-                });
+                })
             }
-            throw error;
+            throw error
         }
     }
 
@@ -137,14 +137,14 @@ export class EvacuationController {
     @ApiOperation(EvacuationSwaggerConfig.clearEvacuationPlans.operation)
     @ApiResponse(EvacuationSwaggerConfig.clearEvacuationPlans.responses.success)
     async clearEvacuationPlans() {
-        const result = this.evacuationService.clearEvacuationPlans();
+        const result = this.evacuationService.clearEvacuationPlans()
 
         // Clear Redis cache as well
         try {
-            await this.redisService.flush();
+            await this.redisService.flush()
         } catch (error) {
             // Cache clear error doesn't affect the main operation
-            console.warn('Failed to clear Redis cache:', error.message);
+            console.warn('Failed to clear Redis cache:', error.message)
         }
 
         return {
@@ -153,7 +153,7 @@ export class EvacuationController {
                 cleared: true,
                 timestamp: new Date().toISOString(),
             },
-        };
+        }
     }
 
     @Get('stats')
@@ -164,13 +164,13 @@ export class EvacuationController {
     @ApiResponse(EvacuationSwaggerConfig.getStats.responses.rateLimit)
     async getStats() {
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0]
 
             const [dailyStats, strategyStats, cacheInfo] = await Promise.all([
                 this.redisService.getStats(`stats:daily:${today}:*`),
                 this.redisService.getStats('stats:strategy_usage:*'),
                 this.redisService.info(),
-            ]);
+            ])
 
             return {
                 message: 'Statistics retrieved successfully',
@@ -182,7 +182,7 @@ export class EvacuationController {
                         info: cacheInfo.split('\r\n').slice(0, 10), // First 10 lines of Redis info
                     },
                 },
-            };
+            }
         } catch (error) {
             return {
                 message: 'Failed to retrieve statistics',
@@ -192,7 +192,7 @@ export class EvacuationController {
                         connected: false,
                     },
                 },
-            };
+            }
         }
     }
 }

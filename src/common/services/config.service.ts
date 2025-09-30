@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { AppConfig } from '../interfaces/config.interface';
+import { Injectable } from '@nestjs/common'
+import { AppConfig } from '../interfaces/config.interface'
 
 @Injectable()
 export class ConfigService {
-    private readonly config: AppConfig;
+    private readonly config: AppConfig
 
     constructor() {
         this.config = {
@@ -61,22 +61,22 @@ export class ConfigService {
                 ttl: parseInt(process.env.CACHE_TTL || '300', 10),
                 distanceCacheTtl: parseInt(process.env.DISTANCE_CACHE_TTL || '86400', 10),
             },
-        };
+        }
     }
 
     get<K extends keyof AppConfig>(key: K): AppConfig[K] {
-        return this.config[key];
+        return this.config[key]
     }
 
     getAll(): AppConfig {
-        return this.config;
+        return this.config
     }
 
     isDevelopment(): boolean {
-        return this.config.nodeEnv === 'development';
+        return this.config.nodeEnv === 'development'
     }
 
     isProduction(): boolean {
-        return this.config.nodeEnv === 'production';
+        return this.config.nodeEnv === 'production'
     }
 }

@@ -1,4 +1,4 @@
-import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
+import { ProcessedVehicle } from '@modules/vehicle/vehicle.service'
 
 export const mockVehicles: ProcessedVehicle[] = [
     // {
@@ -25,4 +25,4 @@ export const mockVehicles: ProcessedVehicle[] = [
     //     speed: 80,
     //     type: 'truck',
     // },
-];
+]

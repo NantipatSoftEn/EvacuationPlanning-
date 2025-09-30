@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
-import { VehicleCreateDto } from './vehicle.dto';
-import { VehicleService } from './vehicle.service';
-import { VehicleSwaggerConfig } from './vehicle.swagger';
+import { Body, Controller, Get, Post } from '@nestjs/common'
+import { ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger'
+import { VehicleCreateDto } from './vehicle.dto'
+import { VehicleService } from './vehicle.service'
+import { VehicleSwaggerConfig } from './vehicle.swagger'
 
 @ApiTags('vehicles')
 @Controller('vehicles')
@@ -15,8 +15,8 @@ export class VehicleController {
     @ApiResponse(VehicleSwaggerConfig.addVehicles.responses.success)
     @ApiResponse(VehicleSwaggerConfig.addVehicles.responses.badRequest)
     addVehicles(@Body() vehicles: VehicleCreateDto | VehicleCreateDto[]) {
-        const vehiclesArray = Array.isArray(vehicles) ? vehicles : [vehicles];
-        const results = this.vehicleService.addVehicles(vehiclesArray);
+        const vehiclesArray = Array.isArray(vehicles) ? vehicles : [vehicles]
+        const results = this.vehicleService.addVehicles(vehiclesArray)
 
         return {
             message: `${results.length} vehicle(s) added successfully`,
@@ -24,20 +24,20 @@ export class VehicleController {
                 vehicles: results,
                 count: results.length,
             },
-        };
+        }
     }
 
     @Get()
     @ApiOperation(VehicleSwaggerConfig.getAllVehicles.operation)
     @ApiResponse(VehicleSwaggerConfig.getAllVehicles.responses.success)
     getAllVehicles() {
-        const vehicles = this.vehicleService.getAllVehicles();
+        const vehicles = this.vehicleService.getAllVehicles()
         return {
             message: 'Retrieved all vehicles successfully',
             data: {
                 vehicles,
                 count: vehicles.length,
             },
-        };
+        }
     }
 }

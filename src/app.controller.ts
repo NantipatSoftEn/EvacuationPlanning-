@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
-import { AppService } from './app.service';
+import { Controller, Get } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger'
+import { AppService } from './app.service'
 
 @Controller()
 export class AppController {
@@ -9,7 +9,7 @@ export class AppController {
     @Get()
     @ApiExcludeEndpoint() // This endpoint is excluded from Swagger as it's just a welcome message
     getHello() {
-        const hello = this.appService.getHello();
+        const hello = this.appService.getHello()
         return {
             message: 'Welcome to Evacuation Planning API',
             data: {
@@ -23,6 +23,6 @@ export class AppController {
                     evacuationPlan: '/api/api/evacuations/plan',
                 },
             },
-        };
+        }
     }
 }

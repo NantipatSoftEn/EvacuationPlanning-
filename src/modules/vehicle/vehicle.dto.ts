@@ -7,41 +7,36 @@ import {
     IsIn,
     IsLatitude,
     IsLongitude,
-} from 'class-validator';
+} from 'class-validator'
 
 export class LocationCoordinatesDto {
     @IsLatitude()
     @IsNotEmpty()
-    latitude: number;
+    latitude: number
 
     @IsLongitude()
     @IsNotEmpty()
-    longitude: number;
+    longitude: number
 }
 
 export class VehicleCreateDto {
     @IsOptional()
     @IsString()
     @IsNotEmpty()
-    vehicleId?: string; // Will be auto-generated if not provided
+    vehicleId?: string // Will be auto-generated if not provided
 
     @IsNumber()
     @Min(1)
-    capacity: number;
+    capacity: number
 
     @IsString()
     @IsIn(['bus', 'van', 'boat'])
-    type: string;
+    type: string
 
     @IsNotEmpty()
-    locationCoordinates: LocationCoordinatesDto;
+    locationCoordinates: LocationCoordinatesDto
 
     @IsNumber()
     @Min(1)
-    speed: number; // Average speed in km/h
-
-    // Legacy field for backward compatibility
-    @IsOptional()
-    @IsString()
-    location?: string;
+    speed: number // Average speed in km/h
 }

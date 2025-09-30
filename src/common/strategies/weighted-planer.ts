@@ -1,19 +1,19 @@
-import { EvacuationAssignment } from '@common/types/EvacuationAssignment';
-import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service';
-import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
-import { estimateTravelTime } from '@common/utils/estimate-travel-time';
-import { haversineDistance } from '@common/utils/haversine-distance';
+import { EvacuationAssignment } from '@common/types/EvacuationAssignment'
+import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service'
+import { ProcessedVehicle } from '@modules/vehicle/vehicle.service'
+import { estimateTravelTime } from '@common/utils/estimate-travel-time'
+import { haversineDistance } from '@common/utils/haversine-distance'
 
 // คำนวณคะแนนถ่วงน้ำหนักสำหรับการจับคู่ zone-vehicle
 function calculateWeightedScore(zone: ProcessedEvacuationZone, vehicle: ProcessedVehicle): number {
     if (!zone.locationCoordinates || !vehicle.locationCoordinates) {
-        return Infinity; // ไม่สามารถคำนวณได้ถ้าไม่มี coordinates
+        return Infinity // ไม่สามารถคำนวณได้ถ้าไม่มี coordinates
     }
 
-    const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated;
-    const urgencyLevel = zone.urgencyLevel || 1;
-    const vehicleCapacity = vehicle.capacity;
-    const vehicleSpeed = vehicle.speed || 50;
+    const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated
+    const urgencyLevel = zone.urgencyLevel || 1
+    const vehicleCapacity = vehicle.capacity
+    const vehicleSpeed = vehicle.speed || 50
 
     // คำนวณระยะทางและเวลา
     const distance = haversineDistance(
@@ -21,38 +21,38 @@ function calculateWeightedScore(zone: ProcessedEvacuationZone, vehicle: Processe
         zone.locationCoordinates.longitude,
         vehicle.locationCoordinates.latitude,
         vehicle.locationCoordinates.longitude,
-    );
-    const eta = estimateTravelTime(distance, vehicleSpeed);
+    )
+    const eta = estimateTravelTime(distance, vehicleSpeed)
 
     // กำหนดน้ำหนัก (weights) ตามลำดับความสำคัญ
-    const urgencyWeight = 10000; // น้ำหนักสูงสุด - urgency มาก่อน
-    const capacityWeight = 1000; // น้ำหนักรอง - capacity
-    const distanceWeight = 100; // น้ำหนักที่สาม - distance
-    const etaWeight = 10; // น้ำหนักต่ำสุด - ETA
+    const urgencyWeight = 10000 // น้ำหนักสูงสุด - urgency มาก่อน
+    const capacityWeight = 1000 // น้ำหนักรอง - capacity
+    const distanceWeight = 100 // น้ำหนักที่สาม - distance
+    const etaWeight = 10 // น้ำหนักต่ำสุด - ETA
 
     // คำนวณคะแนนแต่ละหมวด (ยิ่งต่ำยิ่งดี)
 
     // 1. Urgency Score (ยิ่ง urgency สูง คะแนนยิ่งต่ำ)
     // ใช้ (6 - urgencyLevel) เพื่อให้ urgency สูง ได้คะแนนต่ำ
-    const normalizedUrgency = 6 - Math.min(Math.max(urgencyLevel, 1), 5);
-    const urgencyScore = urgencyWeight * normalizedUrgency;
+    const normalizedUrgency = 6 - Math.min(Math.max(urgencyLevel, 1), 5)
+    const urgencyScore = urgencyWeight * normalizedUrgency
 
     // 2. Capacity Score (ยิ่งใช้ capacity เต็มที่ คะแนนยิ่งต่ำ)
-    const capacityUtilization = Math.min(remainingPeople, vehicleCapacity) / vehicleCapacity;
-    const capacityScore = capacityWeight * (1 - capacityUtilization);
+    const capacityUtilization = Math.min(remainingPeople, vehicleCapacity) / vehicleCapacity
+    const capacityScore = capacityWeight * (1 - capacityUtilization)
 
     // 3. Distance Score (ยิ่งใกล้ คะแนนยิ่งต่ำ)
-    const normalizedDistance = Math.min(distance, 100) / 100; // Normalize to 0-1
-    const distanceScore = distanceWeight * normalizedDistance;
+    const normalizedDistance = Math.min(distance, 100) / 100 // Normalize to 0-1
+    const distanceScore = distanceWeight * normalizedDistance
 
     // 4. ETA Score (ยิ่งเร็ว คะแนนยิ่งต่ำ)
-    const normalizedEta = Math.min(eta, 300) / 300; // Normalize to 0-1 (max 5 hours)
-    const etaScore = etaWeight * normalizedEta;
+    const normalizedEta = Math.min(eta, 300) / 300 // Normalize to 0-1 (max 5 hours)
+    const etaScore = etaWeight * normalizedEta
 
     // รวมคะแนนถ่วงน้ำหนัก
-    const totalScore = urgencyScore + capacityScore + distanceScore + etaScore;
+    const totalScore = urgencyScore + capacityScore + distanceScore + etaScore
 
-    return totalScore;
+    return totalScore
 }
 
 // เลือก vehicle ที่เหมาะสมที่สุดสำหรับ zone ด้วย weighted scoring
@@ -60,28 +60,28 @@ function chooseBestVehicleWeighted(
     zone: ProcessedEvacuationZone,
     vehicles: ProcessedVehicle[],
 ): ProcessedVehicle | null {
-    let bestVehicle: ProcessedVehicle | null = null;
-    let bestScore = Infinity;
+    let bestVehicle: ProcessedVehicle | null = null
+    let bestScore = Infinity
 
-    const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated;
+    const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated
 
     for (const vehicle of vehicles) {
         // ตรวจสอบว่า vehicle มี capacity เหลืออยู่และ zone ยังมีคนต้องอพยพ
         if (vehicle.capacity <= 0 || remainingPeople <= 0) {
-            continue;
+            continue
         }
 
         // คำนวณคะแนนถ่วงน้ำหนัก
-        const score = calculateWeightedScore(zone, vehicle);
+        const score = calculateWeightedScore(zone, vehicle)
 
         // เลือก vehicle ที่มีคะแนนดีที่สุด (ต่ำสุด)
         if (score < bestScore) {
-            bestScore = score;
-            bestVehicle = vehicle;
+            bestScore = score
+            bestVehicle = vehicle
         }
     }
 
-    return bestVehicle;
+    return bestVehicle
 }
 
 // สร้าง evacuation plan แบบ weighted strategy
@@ -89,27 +89,27 @@ function generateWeightedPlan(
     zones: ProcessedEvacuationZone[],
     vehicles: ProcessedVehicle[],
 ): EvacuationAssignment[] {
-    const plan: EvacuationAssignment[] = [];
+    const plan: EvacuationAssignment[] = []
 
     // สร้างสำเนาของ zones และ vehicles เพื่อไม่ให้แก้ไขข้อมูลต้นฉบับ
-    const zonesWorkingCopy = zones.map((zone) => ({ ...zone }));
-    const vehiclesWorkingCopy = vehicles.map((vehicle) => ({ ...vehicle }));
+    const zonesWorkingCopy = zones.map((zone) => ({ ...zone }))
+    const vehiclesWorkingCopy = vehicles.map((vehicle) => ({ ...vehicle }))
 
     // เรียง zones ตาม urgency level จากมาก → น้อย
-    zonesWorkingCopy.sort((a, b) => (b.urgencyLevel || 0) - (a.urgencyLevel || 0));
+    zonesWorkingCopy.sort((a, b) => (b.urgencyLevel || 0) - (a.urgencyLevel || 0))
 
     for (const zone of zonesWorkingCopy) {
-        const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated;
+        const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated
 
-        if (remainingPeople <= 0) continue;
+        if (remainingPeople <= 0) continue
 
         // หาคู่ zone-vehicle ที่ดีที่สุดโดยพิจารณาการใช้ vehicle เต็มประสิทธิภาพ
         let bestAssignment: {
-            vehicle: ProcessedVehicle;
-            score: number;
-            evacuated: number;
-            etaMinutes: number;
-        } | null = null;
+            vehicle: ProcessedVehicle
+            score: number
+            evacuated: number
+            etaMinutes: number
+        } | null = null
 
         for (const vehicle of vehiclesWorkingCopy) {
             if (
@@ -117,11 +117,11 @@ function generateWeightedPlan(
                 !zone.locationCoordinates ||
                 vehicle.capacity <= 0
             ) {
-                continue;
+                continue
             }
 
             // คำนวณจำนวนคนที่จะอพยพได้ด้วย vehicle นี้
-            const canEvacuate = Math.min(vehicle.capacity, remainingPeople);
+            const canEvacuate = Math.min(vehicle.capacity, remainingPeople)
 
             // คำนวณระยะทางและเวลา
             const distance = haversineDistance(
@@ -129,11 +129,11 @@ function generateWeightedPlan(
                 zone.locationCoordinates.longitude,
                 vehicle.locationCoordinates.latitude,
                 vehicle.locationCoordinates.longitude,
-            );
-            const etaMinutes = estimateTravelTime(distance, vehicle.speed || 50);
+            )
+            const etaMinutes = estimateTravelTime(distance, vehicle.speed || 50)
 
             // คำนวณคะแนนถ่วงน้ำหนัก
-            const score = calculateWeightedScore(zone, vehicle);
+            const score = calculateWeightedScore(zone, vehicle)
 
             // เลือกการจับคู่ที่ดีที่สุด (คะแนนต่ำสุด และอพยพคนได้มากที่สุด)
             if (
@@ -146,7 +146,7 @@ function generateWeightedPlan(
                     score,
                     evacuated: canEvacuate,
                     etaMinutes,
-                };
+                }
             }
         }
 
@@ -157,16 +157,16 @@ function generateWeightedPlan(
                 vehicleId: bestAssignment.vehicle.vehicleId || bestAssignment.vehicle.id,
                 etaMinutes: bestAssignment.etaMinutes,
                 evacuated: bestAssignment.evacuated,
-            });
+            })
 
             // อัพเดทสถานะ
-            zone.evacuated += bestAssignment.evacuated;
-            bestAssignment.vehicle.capacity -= bestAssignment.evacuated;
+            zone.evacuated += bestAssignment.evacuated
+            bestAssignment.vehicle.capacity -= bestAssignment.evacuated
         }
     }
 
-    return plan;
+    return plan
 }
 
 // ===== Export Functions =====
-export { generateWeightedPlan, chooseBestVehicleWeighted, calculateWeightedScore };
+export { generateWeightedPlan, chooseBestVehicleWeighted, calculateWeightedScore }

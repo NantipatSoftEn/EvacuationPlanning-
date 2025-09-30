@@ -1,4 +1,4 @@
-import { ApiBodyOptions, ApiOperationOptions, ApiResponseOptions } from '@nestjs/swagger';
+import { ApiBodyOptions, ApiOperationOptions, ApiResponseOptions } from '@nestjs/swagger'
 
 export const VehicleSwaggerConfig = {
     addVehicles: {
@@ -206,4 +206,4 @@ export const VehicleSwaggerConfig = {
             } as ApiResponseOptions,
         },
     },
-};
+}

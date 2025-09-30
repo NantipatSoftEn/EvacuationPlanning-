@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { RedisService } from '@common/cache/redis.service';
+import { Controller, Get } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { RedisService } from '@common/cache/redis.service'
 
 @ApiTags('health')
 @Controller('health')
@@ -87,25 +87,25 @@ export class HealthController {
         },
     })
     async checkHealth() {
-        const startTime = Date.now();
-        let redisStatus = 'down';
-        let redisInfo = {};
+        const startTime = Date.now()
+        let redisStatus = 'down'
+        let redisInfo = {}
 
         try {
-            await this.redisService.set('health_check', { timestamp: new Date() }, 5);
-            const healthCheck = await this.redisService.get('health_check');
+            await this.redisService.set('health_check', { timestamp: new Date() }, 5)
+            const healthCheck = await this.redisService.get('health_check')
             if (healthCheck) {
-                redisStatus = 'up';
+                redisStatus = 'up'
                 redisInfo = {
                     connected: true,
                     latency: Date.now() - startTime,
-                };
+                }
             }
         } catch (error) {
             redisInfo = {
                 connected: false,
                 error: error.message,
-            };
+            }
         }
 
         return {
@@ -128,6 +128,6 @@ export class HealthController {
                 },
                 environment: process.env.NODE_ENV || 'development',
             },
-        };
+        }
     }
 }

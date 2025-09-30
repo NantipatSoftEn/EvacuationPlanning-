@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { HealthController } from './health.controller';
-import { CacheModule } from '@common/cache/cache.module';
-import { EvacuationZonesController } from '@modules/evacution/evacuation-zones.controller';
-import { EvacuationController } from '@modules/evacution/evacuation.controller';
-import { EvacuationService } from '@modules/evacution/evacuation.service';
-import { VehicleController } from '@modules/vehicle/vehicle.controller';
-import { VehicleService } from '@modules/vehicle/vehicle.service';
+import { Module } from '@nestjs/common'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { AppController } from './app.controller'
+import { AppService } from './app.service'
+import { HealthController } from './health.controller'
+import { CacheModule } from '@common/cache/cache.module'
+import { EvacuationZonesController } from '@modules/evacution/evacuation-zones.controller'
+import { EvacuationController } from '@modules/evacution/evacuation.controller'
+import { EvacuationService } from '@modules/evacution/evacuation.service'
+import { VehicleController } from '@modules/vehicle/vehicle.controller'
+import { VehicleService } from '@modules/vehicle/vehicle.service'
 
 @Module({
     imports: [

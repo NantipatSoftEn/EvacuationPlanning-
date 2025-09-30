@@ -1,4 +1,4 @@
-import { ApiBodyOptions, ApiOperationOptions, ApiResponseOptions } from '@nestjs/swagger';
+import { ApiBodyOptions, ApiOperationOptions, ApiResponseOptions } from '@nestjs/swagger'
 
 export const EvacuationSwaggerConfig = {
     generateEvacuationPlan: {
@@ -137,4 +137,4 @@ export const EvacuationSwaggerConfig = {
             } as ApiResponseOptions,
         },
     },
-};
+}
