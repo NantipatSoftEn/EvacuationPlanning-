@@ -4,39 +4,37 @@ import { mockVehicles } from '@common/mocks/vehicle'
 
 export interface ProcessedVehicle {
     id: string
-    vehicleId?: string
     capacity: number
     type: string
-    locationCoordinates?: {
+    locationCoordinates: {
         latitude: number
         longitude: number
     }
-    speed?: number
+    speed: number
 }
 
 @Injectable()
 export class VehicleService {
     private readonly vehicles: ProcessedVehicle[] = [...mockVehicles]
 
-    addVehicle(vehicleData: VehicleCreateDto) {
+    addVehicle(vehicleData: VehicleCreateDto): ProcessedVehicle {
         // Validate input data
         this.validateVehicleInput(vehicleData)
 
         const newVehicle: ProcessedVehicle = {
-            id: vehicleData.vehicleId || Math.random().toString(36).substring(2, 11),
+            id: vehicleData.vehicleId || this.generateVehicleId(),
             capacity: vehicleData.capacity,
             type: vehicleData.type,
-        }
-
-        // Handle new format
-        if (vehicleData.locationCoordinates) {
-            newVehicle.vehicleId = vehicleData.vehicleId || newVehicle.id
-            newVehicle.locationCoordinates = vehicleData.locationCoordinates
-            newVehicle.speed = vehicleData.speed
+            locationCoordinates: vehicleData.locationCoordinates,
+            speed: vehicleData.speed,
         }
 
         this.vehicles.push(newVehicle)
         return newVehicle
+    }
+
+    private generateVehicleId(): string {
+        return Math.random().toString(36).substring(2, 11)
     }
 
     addVehicles(vehiclesData: VehicleCreateDto[]): ProcessedVehicle[] {
@@ -59,18 +57,7 @@ export class VehicleService {
         return results
     }
 
-    private validateVehicleInput(vehicleData: VehicleCreateDto) {
-        // Check if either new format or legacy format is provided
-        const hasNewFormat = vehicleData.locationCoordinates && vehicleData.speed !== undefined
-
-        if (!hasNewFormat) {
-            throw new BadRequestException(
-                'Invalid input format. Please provide either:\n' +
-                    '- New format: locationCoordinates, speed\n',
-            )
-        }
-
-        // Validate required fields
+    private validateVehicleInput(vehicleData: VehicleCreateDto): void {
         if (vehicleData.capacity <= 0) {
             throw new BadRequestException('Vehicle capacity must be greater than 0')
         }
@@ -79,39 +66,37 @@ export class VehicleService {
             throw new BadRequestException('Vehicle type must be bus, van, or boat')
         }
 
-        // Validate new format specific fields
-        if (hasNewFormat) {
-            if (vehicleData.speed! <= 0) {
-                throw new BadRequestException('Vehicle speed must be greater than 0')
-            }
-            if (
-                !vehicleData.locationCoordinates!.latitude ||
-                !vehicleData.locationCoordinates!.longitude
-            ) {
-                throw new BadRequestException(
-                    'Valid latitude and longitude coordinates are required',
-                )
-            }
+        if (vehicleData.speed <= 0) {
+            throw new BadRequestException('Vehicle speed must be greater than 0')
+        }
+
+        // Coordinates validation is handled by class-validator decorators in DTO
+        // But we can add extra business logic validation here if needed
+        const { latitude, longitude } = vehicleData.locationCoordinates
+        if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+            throw new BadRequestException(
+                'Invalid coordinates: latitude must be between -90 and 90, longitude between -180 and 180',
+            )
         }
     }
 
-    getAllVehicles() {
+    getAllVehicles(): ProcessedVehicle[] {
         return this.vehicles
     }
 
-    getVehicleById(id: string) {
-        return this.vehicles.find((vehicle) => vehicle.id === id || vehicle.vehicleId === id)
+    getVehicleById(id: string): ProcessedVehicle | undefined {
+        return this.vehicles.find((vehicle) => vehicle.id === id)
     }
 
-    getVehiclesByType(type: string) {
+    getVehiclesByType(type: string): ProcessedVehicle[] {
         return this.vehicles.filter((vehicle) => vehicle.type.toLowerCase() === type.toLowerCase())
     }
 
-    getVehiclesInRange(coordinates: { latitude: number; longitude: number }, maxDistance: number) {
+    getVehiclesInRange(
+        coordinates: { latitude: number; longitude: number },
+        maxDistance: number,
+    ): ProcessedVehicle[] {
         return this.vehicles.filter((vehicle) => {
-            if (!vehicle.locationCoordinates) return false
-
-            // Simple distance calculation (you might want to use a more accurate formula)
             const distance = this.calculateDistance(
                 coordinates.latitude,
                 coordinates.longitude,

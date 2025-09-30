@@ -154,7 +154,7 @@ function generateWeightedPlan(
         if (bestAssignment) {
             plan.push({
                 zoneId: zone.zoneId || zone.id,
-                vehicleId: bestAssignment.vehicle.vehicleId || bestAssignment.vehicle.id,
+                vehicleId: bestAssignment.vehicle.id,
                 etaMinutes: bestAssignment.etaMinutes,
                 evacuated: bestAssignment.evacuated,
             })

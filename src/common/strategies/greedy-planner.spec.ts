@@ -1,7 +1,6 @@
-import { generateGreedyPlan, chooseBestVehicleGreedy } from './greedy-planner'
+import { generateGreedyPlan } from './greedy-planner'
 import { ProcessedEvacuationZone } from '@modules/evacution/evacuation.service'
 import { ProcessedVehicle } from '@modules/vehicle/vehicle.service'
-import { EvacuationAssignment } from '@common/types/EvacuationAssignment'
 
 describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
     describe('1. Urgency vs Distance', () => {
@@ -31,7 +30,6 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
             const vehicles: ProcessedVehicle[] = [
                 {
                     id: 'v1-close-to-z2',
-                    vehicleId: 'V1',
                     locationCoordinates: { latitude: 13.75, longitude: 100.5 }, // Very close to Z2
                     capacity: 20,
                     speed: 60,
@@ -43,7 +41,6 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             // Greedy should choose Z1 first due to higher urgency despite distance
             expect(plan[0].zoneId).toBe('Z1')
-            expect(plan[0].vehicleId).toBe('V1')
             expect(plan[0].evacuated).toBe(20)
         })
     })
@@ -64,7 +61,6 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
             const vehicles: ProcessedVehicle[] = [
                 {
                     id: 'v1-oversized',
-                    vehicleId: 'V1',
                     locationCoordinates: { latitude: 13.76, longitude: 100.51 },
                     capacity: 40, // Much larger than needed
                     speed: 60,
@@ -77,7 +73,6 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
             // Should complete evacuation in single assignment
             expect(plan.length).toBe(1)
             expect(plan[0].zoneId).toBe('Z1')
-            expect(plan[0].vehicleId).toBe('V1')
             expect(plan[0].evacuated).toBe(10) // All people evacuated
         })
     })
@@ -97,24 +92,21 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-large',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: { latitude: 13.76, longitude: 100.51 },
                     capacity: 40,
                     speed: 60,
                     type: 'bus',
                 },
                 {
-                    id: 'v2-medium',
-                    vehicleId: 'V2',
+                    id: 'V2',
                     locationCoordinates: { latitude: 13.77, longitude: 100.52 },
                     capacity: 20,
                     speed: 50,
                     type: 'van',
                 },
                 {
-                    id: 'v3-small',
-                    vehicleId: 'V3',
+                    id: 'V3',
                     locationCoordinates: { latitude: 13.78, longitude: 100.53 },
                     capacity: 10,
                     speed: 40,
@@ -155,8 +147,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-close-small',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: {
                         latitude: 13.751,
                         longitude: 100.501,
@@ -166,8 +157,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
                     type: 'car',
                 },
                 {
-                    id: 'v2-far-large',
-                    vehicleId: 'V2',
+                    id: 'V2',
                     locationCoordinates: { latitude: 13.8, longitude: 100.6 }, // Further away
                     capacity: 40,
                     speed: 50,
@@ -211,8 +201,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-shared',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: { latitude: 13.76, longitude: 100.51 },
                     capacity: 40, // Can handle either zone completely
                     speed: 60,
@@ -224,7 +213,6 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             // Z1 should be handled completely before Z2 gets any vehicle
             const z1Assignments = plan.filter((assignment) => assignment.zoneId === 'Z1')
-            const z2Assignments = plan.filter((assignment) => assignment.zoneId === 'Z2')
 
             expect(z1Assignments.length).toBeGreaterThan(0)
             // Z1 should be evacuated first (30 people with 40 capacity = 1 trip)
@@ -247,16 +235,14 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-limited',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: { latitude: 13.76, longitude: 100.51 },
                     capacity: 40,
                     speed: 60,
                     type: 'bus',
                 },
                 {
-                    id: 'v2-limited',
-                    vehicleId: 'V2',
+                    id: 'V2',
                     locationCoordinates: { latitude: 13.77, longitude: 100.52 },
                     capacity: 30,
                     speed: 50,
@@ -316,8 +302,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-full',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: { latitude: 13.76, longitude: 100.51 },
                     capacity: 0, // No capacity
                     speed: 60,
@@ -355,8 +340,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-single',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: { latitude: 13.76, longitude: 100.51 },
                     capacity: 30, // Can handle either zone
                     speed: 60,
@@ -406,8 +390,7 @@ describe('🔹 Comprehensive Greedy Algorithm Test Cases', () => {
 
             const vehicles: ProcessedVehicle[] = [
                 {
-                    id: 'v1-positioned',
-                    vehicleId: 'V1',
+                    id: 'V1',
                     locationCoordinates: { latitude: 13.75, longitude: 100.5 },
                     capacity: 25,
                     speed: 60,

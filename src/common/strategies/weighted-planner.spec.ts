@@ -38,23 +38,21 @@ describe('Weighted Planner Strategy', () => {
 
     const mockVehicles: ProcessedVehicle[] = [
         {
-            id: 'v1',
+            id: 'V1',
             locationCoordinates: { latitude: 13.8, longitude: 100.51 },
             capacity: 10,
             speed: 100, // Fast but small capacity
             type: 'van',
         },
         {
-            id: 'v2',
-            vehicleId: 'V2',
+            id: 'V2',
             locationCoordinates: { latitude: 13.76, longitude: 100.51 },
             capacity: 40,
             speed: 60, // Large capacity, moderate speed
             type: 'bus',
         },
         {
-            id: 'v3',
-            vehicleId: 'V3',
+            id: 'V3',
             locationCoordinates: { latitude: 13.1, longitude: 100.9 },
             capacity: 20,
             speed: 80, // Medium capacity, good speed
@@ -226,7 +224,7 @@ describe('Weighted Planner Strategy', () => {
             const plan = generateWeightedPlan(zones, vehicles)
 
             plan.forEach((assignment) => {
-                const vehicle = vehicles.find((v) => (v.vehicleId || v.id) === assignment.vehicleId)
+                const vehicle = vehicles.find((v) => v.id === assignment.vehicleId)
                 expect(vehicle).toBeDefined()
                 expect(assignment.evacuated).toBeLessThanOrEqual(vehicle!.capacity)
             })
