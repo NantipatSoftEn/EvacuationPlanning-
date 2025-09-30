@@ -4,7 +4,6 @@ import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
 import { estimateTravelTime } from '@common/utils/estimate-travel-time';
 import { haversineDistance } from '@common/utils/haversine-distance';
 
-
 // คำนวณคะแนนถ่วงน้ำหนักสำหรับการจับคู่ zone-vehicle
 function calculateWeightedScore(
     zone: ProcessedEvacuationZone,
@@ -29,26 +28,27 @@ function calculateWeightedScore(
     const eta = estimateTravelTime(distance, vehicleSpeed);
 
     // กำหนดน้ำหนัก (weights) ตามลำดับความสำคัญ
-    const urgencyWeight = 10000;  // น้ำหนักสูงสุด - urgency มาก่อน
-    const capacityWeight = 1000;  // น้ำหนักรอง - capacity
-    const distanceWeight = 100;   // น้ำหนักที่สาม - distance
-    const etaWeight = 10;         // น้ำหนักต่ำสุด - ETA
+    const urgencyWeight = 10000; // น้ำหนักสูงสุด - urgency มาก่อน
+    const capacityWeight = 1000; // น้ำหนักรอง - capacity
+    const distanceWeight = 100; // น้ำหนักที่สาม - distance
+    const etaWeight = 10; // น้ำหนักต่ำสุด - ETA
 
     // คำนวณคะแนนแต่ละหมวด (ยิ่งต่ำยิ่งดี)
-    
+
     // 1. Urgency Score (ยิ่ง urgency สูง คะแนนยิ่งต่ำ)
     // ใช้ (6 - urgencyLevel) เพื่อให้ urgency สูง ได้คะแนนต่ำ
     const normalizedUrgency = 6 - Math.min(Math.max(urgencyLevel, 1), 5);
     const urgencyScore = urgencyWeight * normalizedUrgency;
-    
+
     // 2. Capacity Score (ยิ่งใช้ capacity เต็มที่ คะแนนยิ่งต่ำ)
-    const capacityUtilization = Math.min(remainingPeople, vehicleCapacity) / vehicleCapacity;
+    const capacityUtilization =
+        Math.min(remainingPeople, vehicleCapacity) / vehicleCapacity;
     const capacityScore = capacityWeight * (1 - capacityUtilization);
-    
+
     // 3. Distance Score (ยิ่งใกล้ คะแนนยิ่งต่ำ)
     const normalizedDistance = Math.min(distance, 100) / 100; // Normalize to 0-1
     const distanceScore = distanceWeight * normalizedDistance;
-    
+
     // 4. ETA Score (ยิ่งเร็ว คะแนนยิ่งต่ำ)
     const normalizedEta = Math.min(eta, 300) / 300; // Normalize to 0-1 (max 5 hours)
     const etaScore = etaWeight * normalizedEta;
@@ -106,7 +106,7 @@ function generateWeightedPlan(
 
     for (const zone of zonesWorkingCopy) {
         const remainingPeople = (zone.numberOfPeople || 0) - zone.evacuated;
-        
+
         if (remainingPeople <= 0) continue;
 
         // หาคู่ zone-vehicle ที่ดีที่สุดโดยพิจารณาการใช้ vehicle เต็มประสิทธิภาพ
@@ -118,13 +118,17 @@ function generateWeightedPlan(
         } | null = null;
 
         for (const vehicle of vehiclesWorkingCopy) {
-            if (!vehicle.locationCoordinates || !zone.locationCoordinates || vehicle.capacity <= 0) {
+            if (
+                !vehicle.locationCoordinates ||
+                !zone.locationCoordinates ||
+                vehicle.capacity <= 0
+            ) {
                 continue;
             }
 
             // คำนวณจำนวนคนที่จะอพยพได้ด้วย vehicle นี้
             const canEvacuate = Math.min(vehicle.capacity, remainingPeople);
-            
+
             // คำนวณระยะทางและเวลา
             const distance = haversineDistance(
                 zone.locationCoordinates.latitude,
@@ -132,15 +136,21 @@ function generateWeightedPlan(
                 vehicle.locationCoordinates.latitude,
                 vehicle.locationCoordinates.longitude,
             );
-            const etaMinutes = estimateTravelTime(distance, vehicle.speed || 50);
+            const etaMinutes = estimateTravelTime(
+                distance,
+                vehicle.speed || 50,
+            );
 
             // คำนวณคะแนนถ่วงน้ำหนัก
             const score = calculateWeightedScore(zone, vehicle);
 
             // เลือกการจับคู่ที่ดีที่สุด (คะแนนต่ำสุด และอพยพคนได้มากที่สุด)
-            if (!bestAssignment || 
-                score < bestAssignment.score || 
-                (score === bestAssignment.score && canEvacuate > bestAssignment.evacuated)) {
+            if (
+                !bestAssignment ||
+                score < bestAssignment.score ||
+                (score === bestAssignment.score &&
+                    canEvacuate > bestAssignment.evacuated)
+            ) {
                 bestAssignment = {
                     vehicle,
                     score,
@@ -154,7 +164,9 @@ function generateWeightedPlan(
         if (bestAssignment) {
             plan.push({
                 zoneId: zone.zoneId || zone.id,
-                vehicleId: bestAssignment.vehicle.vehicleId || bestAssignment.vehicle.id,
+                vehicleId:
+                    bestAssignment.vehicle.vehicleId ||
+                    bestAssignment.vehicle.id,
                 etaMinutes: bestAssignment.etaMinutes,
                 evacuated: bestAssignment.evacuated,
             });
@@ -169,8 +181,8 @@ function generateWeightedPlan(
 }
 
 // ===== Export Functions =====
-export { 
-    generateWeightedPlan, 
-    chooseBestVehicleWeighted, 
-    calculateWeightedScore 
+export {
+    generateWeightedPlan,
+    chooseBestVehicleWeighted,
+    calculateWeightedScore,
 };

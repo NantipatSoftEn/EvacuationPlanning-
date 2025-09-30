@@ -10,16 +10,18 @@ import { join } from 'path';
 declare const module: any;
 
 // Load environment variables based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+const envFile =
+    process.env.NODE_ENV === 'production'
+        ? '.env.production'
+        : '.env.development';
 dotenv.config({ path: join(process.cwd(), envFile) });
 
 async function bootstrap() {
-    // ใช้ logger ธรรมดา
     const app = await NestFactory.create(AppModule);
 
     // Security middleware
-    app.use(helmet());
-    app.use(compression());
+    app.use(helmet()); // HTTP headers security
+    app.use(compression()); // Gzip compression
 
     // CORS configuration
     app.enableCors({
@@ -32,25 +34,27 @@ async function bootstrap() {
     // Swagger documentation setup
     const config = new DocumentBuilder()
         .setTitle('Evacuation Planning API')
-        .setDescription('The evacuation planning API with multiple optimization strategies')
+        .setDescription(
+            'The evacuation planning API with multiple optimization strategies',
+        )
         .setVersion('1.0')
         .addTag('evacuation')
         .addTag('vehicles')
         .addTag('zones')
         .addBearerAuth()
         .build();
-    
+
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('docs', app, documentFactory);
 
     // Enable validation globally
     app.useGlobalPipes(
         new ValidationPipe({
-            whitelist: true,
-            forbidNonWhitelisted: true,
-            transform: true,
+            whitelist: true, //อนุญาตเฉพาะ properties ที่กำหนดไว้ใน DTO เท่านั้น
+            forbidNonWhitelisted: true, // ถ้ามี properties ที่ไม่อยู่ใน whitelist จะเกิด error
+            transform: true, // แปลง payload เป็น instance ของ DTO อัตโนมัติ
             transformOptions: {
-                enableImplicitConversion: true,
+                enableImplicitConversion: true, // อนุญาตการแปลงประเภทข้อมูลแบบปImplicitly tring "123" → number 123
             },
         }),
     );
@@ -63,7 +67,6 @@ async function bootstrap() {
     const port = process.env.PORT ?? 3000;
     await app.listen(port);
 
-    // ใช้ console.log ธรรมดา
     console.log(`🚀 Application is running on: http://localhost:${port}`);
     console.log(`📚 API Documentation: http://localhost:${port}/docs`);
     console.log(`💊 Health Check: http://localhost:${port}/health`);

@@ -8,7 +8,6 @@ import { ProcessedVehicle } from '@modules/vehicle/vehicle.service';
 
 // ===== Greedy Strategy =====
 
-
 // เลือก vehicle ที่ใกล้และเหมาะสมที่สุดสำหรับ zone
 function chooseBestVehicleGreedy(
     zone: ProcessedEvacuationZone,
