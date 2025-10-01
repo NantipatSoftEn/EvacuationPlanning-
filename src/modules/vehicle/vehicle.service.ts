@@ -4,6 +4,7 @@ import { mockVehicles } from '@common/mocks/vehicle'
 
 export interface ProcessedVehicle {
     id: string
+    vehicleId?: string
     capacity: number
     type: string
     locationCoordinates: {
@@ -22,7 +23,8 @@ export class VehicleService {
         this.validateVehicleInput(vehicleData)
 
         const newVehicle: ProcessedVehicle = {
-            id: vehicleData.vehicleId || this.generateVehicleId(),
+            id: this.generateVehicleId(),
+            vehicleId: vehicleData.vehicleId || this.generateVehicleId(),
             capacity: vehicleData.capacity,
             type: vehicleData.type,
             locationCoordinates: vehicleData.locationCoordinates,
