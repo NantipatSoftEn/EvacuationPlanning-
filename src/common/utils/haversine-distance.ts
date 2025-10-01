@@ -1,4 +1,5 @@
-// Haversine formula คำนวณระยะทางระหว่างสองจุด (กม.)
+// Haversine formula คำนวณระยะทางระหว่างสองจุด (กม.) 
+// https://en.wikipedia.org/wiki/Haversine_formula
 export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371 // รัศมีโลก (km)
     const toRad = (deg: number) => (deg * Math.PI) / 180
