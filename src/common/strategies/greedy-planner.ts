@@ -1,5 +1,3 @@
-// import { mockEvacuatedZones } from '@common/mocks/evacuation-zone';
-// import { mockVehicles } from '@common/mocks/vehicle';
 import { EvacuationAssignment } from '@common/types/EvacuationAssignment'
 import { estimateTravelTime } from '@common/utils/estimate-travel-time'
 import { haversineDistance } from '@common/utils/haversine-distance'
