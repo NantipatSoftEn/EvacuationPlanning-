@@ -33,7 +33,7 @@ function calculateWeightedScore(zone: ProcessedEvacuationZone, vehicle: Processe
     // คำนวณคะแนนแต่ละหมวด (ยิ่งต่ำยิ่งดี)
 
     // 1. Urgency Score (ยิ่ง urgency สูง คะแนนยิ่งต่ำ)
-    // ใช้ (6 - urgencyLevel) เพื่อให้ urgency สูง ได้คะแนนต่ำ
+    // ใช้ (6 - urgencyLevel) เพื่อให้ urgency สูง ได้คะแนนต่ำ (กลับด้าน)
     const normalizedUrgency = 6 - Math.min(Math.max(urgencyLevel, 1), 5)
     const urgencyScore = urgencyWeight * normalizedUrgency
 

@@ -6,20 +6,16 @@ import {
     Post,
     Put,
     UseGuards,
-    UseInterceptors,
     NotFoundException,
     BadRequestException,
 } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import {
     EvacuationPlanRequestDto,
-    EvacuationPlanResponseDto,
-    EvacuationStatusDto,
     EvacuationUpdateDto,
 } from './evacuation-plan.dto'
 import { EvacuationService } from './evacuation.service'
 import { RateLimit, RateLimitGuard } from '@common/cache/rate-limit.guard'
-import { CacheConfig, CacheInterceptor } from '@common/cache/cache.interceptor'
 import { RedisService } from '@common/cache/redis.service'
 import { EvacuationSwaggerConfig } from './evacuation.swagger'
 
@@ -60,6 +56,7 @@ export class EvacuationController {
             await this.redisService.trackResponseTime('evacuation_plan', responseTime)
         } catch (error) {
             // Analytics error doesn't affect response
+            console.warn('Failed to track response time:', error.message)
         }
 
         // Transform to expected format: simple array with ZoneID, VehicleID, ETA, NumberOfPeople
