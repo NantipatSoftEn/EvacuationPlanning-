@@ -45,7 +45,7 @@ export class EvacuationService {
         this.validateEvacuationZoneInput(zone)
 
         const newZone: ProcessedEvacuationZone = {
-            id: zone.zoneId || Math.random().toString(36).substr(2, 9),
+            id: zone.zoneId || Math.random().toString(36).substring(2, 11),
             evacuated: 0,
         }
 
@@ -61,12 +61,6 @@ export class EvacuationService {
             newZone.urgencyLevel = zone.urgencyLevel
         }
 
-        // Handle legacy format or set legacy fields for compatibility
-        if (zone.location) {
-            newZone.location = zone.location
-        } else if (zone.locationCoordinates) {
-            newZone.location = `${zone.locationCoordinates.latitude},${zone.locationCoordinates.longitude}`
-        }
 
         if (zone.people !== undefined) {
             newZone.people = zone.people
