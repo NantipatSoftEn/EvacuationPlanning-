@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common'
 import { EvacuationZoneDto } from './evacuation-zone.dto'
-import { VehicleService } from '../vehicle/vehicle.service'
+import { VehicleService, ProcessedVehicle } from '../vehicle/vehicle.service'
 import { RedisService } from '@common/cache/redis.service'
 import { mockEvacuatedZones } from '@common/mocks/evacuation-zone'
 import { generateGreedyPlan } from '@common/strategies/greedy-planner'
@@ -108,29 +108,26 @@ export class EvacuationService {
 
     private validateEvacuationZoneInput(zone: EvacuationZoneDto) {
         // Check if either new format or legacy format is provided
-        const hasNewFormat =
+        const hasFormat =
             zone.locationCoordinates &&
             zone.numberOfPeople !== undefined &&
             zone.urgencyLevel !== undefined
-        const hasLegacyFormat = zone.location && zone.people !== undefined && zone.urgency
 
-        if (!hasNewFormat && !hasLegacyFormat) {
+        if (!hasFormat) {
             throw new BadRequestException(
                 'Invalid input format. Please provide either:\n' +
-                    '- New format: locationCoordinates, numberOfPeople, urgencyLevel\n' +
-                    '- Legacy format: location, people, urgency',
-            )
+                    '- New format: locationCoordinates, numberOfPeople, urgencyLevel\n'            )
         }
 
         // Validate new format
-        if (hasNewFormat) {
-            if (zone.urgencyLevel! < 1 || zone.urgencyLevel! > 5) {
+        if (hasFormat) {
+            if (zone.urgencyLevel < 1 || zone.urgencyLevel > 5) {
                 throw new BadRequestException('Urgency level must be between 1 and 5')
             }
-            if (zone.numberOfPeople! <= 0) {
+            if (zone.numberOfPeople <= 0) {
                 throw new BadRequestException('Number of people must be greater than 0')
             }
-            if (!zone.locationCoordinates!.latitude || !zone.locationCoordinates!.longitude) {
+            if (!zone.locationCoordinates.latitude || !zone.locationCoordinates.longitude) {
                 throw new BadRequestException(
                     'Valid latitude and longitude coordinates are required',
                 )
@@ -138,7 +135,7 @@ export class EvacuationService {
         }
 
         // Validate legacy format
-        if (hasLegacyFormat && !hasNewFormat) {
+        if (!hasFormat) {
             if (zone.people! <= 0) {
                 throw new BadRequestException('Number of people must be greater than 0')
             }
@@ -157,7 +154,7 @@ export class EvacuationService {
     }
 
     async generateEvacuationPlan(
-        vehicles?: any[],
+        vehicles?: ProcessedVehicle[],
         options?: Partial<EvacuationPlanOptions & { strategy?: 'greedy' | 'weighted' }>,
     ) {
         // Use provided vehicles or get all available vehicles from service
@@ -352,7 +349,7 @@ export class EvacuationService {
     }
 
     // Helper methods
-    private async calculateDistance(zone: ProcessedEvacuationZone, vehicle: any): Promise<number> {
+    private async calculateDistance(zone: ProcessedEvacuationZone, vehicle: ProcessedVehicle): Promise<number> {
         if (!zone.locationCoordinates || !vehicle.locationCoordinates) {
             return 0
         }
@@ -367,7 +364,7 @@ export class EvacuationService {
                 return cached.distance
             }
         } catch (error) {
-            // Continue with calculation if cache fails
+            console.warn('Redis cache error:', error.message)
         }
 
         const R = 6371 // Earth's radius in km
@@ -399,6 +396,7 @@ export class EvacuationService {
             )
         } catch (error) {
             // Cache error doesn't affect the result
+            console.warn('Redis cache error:', error.message)
         }
 
         return distance
